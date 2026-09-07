@@ -1,17 +1,17 @@
-export const metadata = {
-  title: "BuildNaro — Free Online Tools",
-  description: "Smart construction calculators and online tools.",
-};
-
-import "./style.css";
-import { LanguageProvider } from "./i18n/LanguageContext";
+import Script from 'next/script'
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body>
-        <LanguageProvider>{children}</LanguageProvider>
-      </body>
+    <html lang="bn">
+      <head>
+        <Script
+          async
+          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8305568320429251"
+          crossOrigin="anonymous"
+          strategy="afterInteractive"
+        />
+      </head>
+      <body>{children}</body>
     </html>
-  );
+  )
 }
