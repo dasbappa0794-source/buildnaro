@@ -62,6 +62,24 @@ const UNITS = [
   "Dozen","Pair","Trip","Load","Hour","Day","Inch","mm","Unit"
 ];
 
+// Group units by category so each material only shows relevant options
+const UNIT_GROUPS = {
+  weight: ["Bag","Kg","Ton","Quintal"],
+  liquid: ["Litre","Gallon"],
+  volume: ["CFT","Cubic Meter (m³)"],
+  area: ["Sq ft","Sq m","Sq yd"],
+  length: ["Running ft","Running meter","Meter","Inch","mm"],
+  count: ["Nos","Set","Roll","Sheet","Box","Bundle","Dozen","Pair","Unit","Point"],
+  time: ["Hour","Day","Trip","Load"],
+};
+const UNIT_TO_GROUP = Object.entries(UNIT_GROUPS).reduce((acc,[g,units])=>{units.forEach(u=>acc[u]=g);return acc;},{});
+const getUnitOptions = (materialName) => {
+  const defaultUnit = MATERIAL_UNIT_MAP[materialName];
+  if (!defaultUnit) return UNITS;
+  const group = UNIT_TO_GROUP[defaultUnit];
+  return group ? UNIT_GROUPS[group] : UNITS;
+};
+
 const money = (value, currency) => new Intl.NumberFormat("en-IN", { style:"currency", currency, maximumFractionDigits:2 }).format(Number(value)||0);
 
 export default function Calculator() {
@@ -235,6 +253,7 @@ export default function Calculator() {
           const brandKey = Object.keys(MATERIAL_BRAND_MAP).find(k=>(m.name||"").toLowerCase().includes(k.toLowerCase()));
           const brandOptions = brandKey ? MATERIAL_BRAND_MAP[brandKey] : GENERIC_BRANDS;
           const sizeOptions = isRodLike(m.name) ? ROD_SIZES : [];
+          const unitOptions = getUnitOptions(m.name);
           return <tr key={i}>
           <td className="mat-row-name"><input list="material-suggestions" value={m.name} placeholder={t("material_name_ph")} onChange={e=>setMaterialName(i,e.target.value)}/></td>
           <td><input list={`brand-list-${i}`} value={m.brand} placeholder={t("brand_ph")} onChange={e=>updateMaterial(i,"brand",e.target.value)}/>
@@ -243,7 +262,7 @@ export default function Calculator() {
           <td><input list={`size-list-${i}`} value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)}/>
             <datalist id={`size-list-${i}`}>{sizeOptions.map(s=><option key={s} value={s}/>)}</datalist>
           </td>
-          <td><select value={m.unit} onChange={e=>updateMaterial(i,"unit",e.target.value)}><option value="">{t("opt_none_custom")}</option>{UNITS.map(x=><option key={x}>{x}</option>)}</select></td>
+          <td><select value={m.unit} onChange={e=>updateMaterial(i,"unit",e.target.value)}><option value="">{t("opt_none_custom")}</option>{unitOptions.map(x=><option key={x}>{x}</option>)}</select></td>
           <td><input type="number" min="0" step="any" value={m.qty} onChange={e=>updateMaterial(i,"qty",e.target.value)}/></td>
           <td><input type="number" min="0" step="any" value={m.rate} onChange={e=>updateMaterial(i,"rate",e.target.value)}/></td>
           <td className="amount">{money(amount,project.currency)}</td><td><button className="delete" aria-label="Remove" onClick={()=>removeMaterial(i)}>×</button></td>
