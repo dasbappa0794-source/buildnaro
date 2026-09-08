@@ -9,60 +9,44 @@ export default function Page() {
     { name: "Bricks", qty: 0, rate: 9, unit: "Nos" },
     { name: "TMT Steel", qty: 0, rate: 68, unit: "Kg" },
   ]);
-
-  const updateQty = (i, v) => {
-    const copy = [...materials];
-    copy[i].qty = Number(v);
-    setMaterials(copy);
-  };
-
-  const total = materials.reduce((s, m) => s + m.qty * m.rate, 0);
+  const update = (i,v)=>{ const c=[...materials]; c[i].qty=Number(v); setMaterials(c); }
+  const total = materials.reduce((s,m)=>s+m.qty*m.rate,0);
 
   return (
-    <main className="min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto bg-white rounded-2xl shadow-lg p-6">
-        <div className="text-center mb-6">
-          <h1 className="text-3xl font-bold">Build<span className="text-blue-600">Naro</span></h1>
-          <p className="text-gray-500 mt-1">House Construction Cost Calculator</p>
+    <div style={{background:"#f6f7f9", minHeight:"100vh", padding:"20px", fontFamily:"system-ui"}}>
+      <div style={{maxWidth:"720px", margin:"0 auto", background:"white", borderRadius:"16px", padding:"20px", boxShadow:"0 4px 20px rgba(0,0,0,0.08)"}}>
+        <h1 style={{fontSize:"28px", fontWeight:"800", margin:0}}>Build<span style={{color:"#2563eb"}}>Naro</span></h1>
+        <p style={{color:"#666", marginTop:"4px"}}>House Construction Cost Calculator</p>
+
+        <div style={{marginTop:"20px"}}>
+          <label style={{fontWeight:"600"}}>Project Name</label>
+          <input value={project} onChange={e=>setProject(e.target.value)} style={{width:"100%", marginTop:"6px", padding:"10px", border:"1px solid #ddd", borderRadius:"8px"}} />
         </div>
 
-        <div className="mb-6">
-          <label className="font-semibold">Project Name</label>
-          <input value={project} onChange={(e)=>setProject(e.target.value)}
-            className="w-full mt-1 border rounded-lg p-2.5" placeholder="My Construction Project" />
+        <h3 style={{marginTop:"24px", fontSize:"18px", fontWeight:"700"}}>Materials (BOQ)</h3>
+        <div style={{marginTop:"10px", border:"1px solid #e5e7eb", borderRadius:"10px", overflow:"hidden"}}>
+          <div style={{display:"grid", gridTemplateColumns:"1.5fr 0.6fr 0.8fr 0.8fr 0.8fr", background:"#f3f4f6", padding:"10px", fontWeight:"700", fontSize:"13px"}}>
+            <span>Material</span><span>Unit</span><span>Qty</span><span>Rate</span><span style={{textAlign:"right"}}>Amount</span>
+          </div>
+          {materials.map((m,i)=>(
+            <div key={i} style={{display:"grid", gridTemplateColumns:"1.5fr 0.6fr 0.8fr 0.8fr 0.8fr", padding:"10px", borderTop:"1px solid #f0f0f0", alignItems:"center"}}>
+              <span style={{fontWeight:"600"}}>{m.name}</span>
+              <span style={{fontSize:"13px", color:"#666"}}>{m.unit}</span>
+              <input type="number" value={m.qty} onChange={e=>update(i,e.target.value)} style={{width:"60px", padding:"6px", border:"1px solid #ddd", borderRadius:"6px"}} />
+              <span>₹{m.rate}</span>
+              <span style={{textAlign:"right", fontWeight:"700"}}>₹{(m.qty*m.rate).toLocaleString('en-IN')}</span>
+            </div>
+          ))}
+          <div style={{display:"grid", gridTemplateColumns:"1.5fr 0.6fr 0.8fr 0.8fr 0.8fr", padding:"14px 10px", background:"#eff6ff", fontWeight:"800", borderTop:"2px solid #2563eb"}}>
+            <span style={{gridColumn:"1 / span 4", textAlign:"right"}}>Grand Total:</span>
+            <span style={{textAlign:"right", color:"#2563eb", fontSize:"18px"}}>₹{total.toLocaleString('en-IN')}</span>
+          </div>
         </div>
 
-        <h2 className="font-bold text-lg mb-3">Materials (BOQ)</h2>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm border">
-            <thead className="bg-gray-100">
-              <tr><th className="p-2 text-left">Material</th><th className="p-2">Unit</th><th className="p-2">Qty</th><th className="p-2">Rate (₹)</th><th className="p-2">Amount</th></tr>
-            </thead>
-            <tbody>
-              {materials.map((m,i)=>(
-                <tr key={i} className="border-t">
-                  <td className="p-2 font-medium">{m.name}</td>
-                  <td className="p-2 text-center">{m.unit}</td>
-                  <td className="p-2"><input type="number" value={m.qty} onChange={(e)=>updateQty(i,e.target.value)} className="w-20 border rounded p-1 text-center" /></td>
-                  <td className="p-2 text-center">₹{m.rate}</td>
-                  <td className="p-2 text-right font-semibold">₹{(m.qty*m.rate).toLocaleString('en-IN')}</td>
-                </tr>
-              ))}
-              <tr className="bg-blue-50 font-bold border-t-2">
-                <td colSpan="4" className="p-3 text-right">Grand Total:</td>
-                <td className="p-3 text-right text-blue-700 text-lg">₹{total.toLocaleString('en-IN')}</td>
-              </tr>
-            </tbody>
-          </table>
+        <div style={{marginTop:"16px", background:"#f9fafb", padding:"12px", borderRadius:"8px", fontSize:"13px", color:"#555"}}>
+          Prepared for: <b style={{color:"#000"}}>{project}</b> | Date: {new Date().toLocaleDateString('en-GB')}
         </div>
-
-        <div className="mt-6 p-4 bg-gray-50 rounded-xl border">
-          <p className="text-sm text-gray-600">Prepared for: <b>{project}</b></p>
-          <p className="text-sm text-gray-600">Date: {new Date().toLocaleDateString('en-GB')}</p>
-        </div>
-
-        <p className="text-center text-xs text-gray-400 mt-6">BuildNaro — Simple & Fast Construction Calculator</p>
       </div>
-    </main>
+    </div>
   );
 }
