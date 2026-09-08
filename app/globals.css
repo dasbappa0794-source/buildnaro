@@ -1,3 +1,4 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* BuildNaro - Fixed - No Tailwind */
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: system-ui, -apple-system, sans-serif; background: #f3f5f8; color: #111; }
+input, select, button { font-family: inherit; outline: none; }
