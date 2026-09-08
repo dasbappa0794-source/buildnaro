@@ -1,46 +1,72 @@
-"use client";
-import { useState, useMemo } from "react";
+import { ArrowRight, CheckCircle2, Zap, Shield, Sparkles } from "lucide-react";
 
-export default function Page(){
-  const [project, setProject] = useState("My Construction Project Bappa");
-  const [mats, setMats] = useState([
-    {mat:"Cement", brand:"ACC", spec:"-", unit:"Bag", qty:250, rate:500},
-    {mat:"TMT Steel Bars", brand:"Local / Unbranded", spec:"-", unit:"Kg", qty:0, rate:65},
-    {mat:"Bricks", brand:"Local / Unbranded", spec:"-", unit:"Nos", qty:0, rate:9},
-    {mat:"TMT Steel Bars", brand:"TATA Tiscon", spec:"6 mm", unit:"Nos", qty:0, rate:68},
-  ]);
-  const [labour, setLabour] = useState(200000);
-  const [transport, setTransport] = useState(10000);
-  
-  const subtotal = mats.reduce((s,m)=>s+m.qty*m.rate,0);
-  const grand = subtotal + labour + transport;
-  const fmt = (n)=> "₹"+n.toLocaleString("en-IN",{minimumFractionDigits:2});
-
+export default function Home() {
   return (
-    <div style={{background:"#f8f9fa", minHeight:"100vh", padding:20}}>
-      <div style={{maxWidth:850, margin:"0 auto", background:"#fff", padding:24, borderRadius:12}}>
-        <div style={{fontSize:22, fontWeight:800}}>Build<span style={{color:"#2563eb"}}>Naro</span> — Construction Estimate Calculator</div>
-        <div style={{fontSize:13, color:"#666", marginTop:6}}>Prepared for: <b>{project}</b><br/>Generated on: {new Date().toLocaleDateString("en-IN")}</div>
+    <div className="min-h-screen bg-slate-950 text-slate-100 font-sans">
+      {/* Navigation */}
+      <nav className="flex items-center justify-between px-8 py-6 border-b border-slate-800 max-w-7xl mx-auto">
+        <div className="text-2xl font-bold bg-gradient-to-r from-blue-400 to-violet-500 bg-clip-text text-transparent">
+          BuildNaro
+        </div>
+        <div className="flex items-center gap-6">
+          <a href="#features" className="text-slate-400 hover:text-white transition">Features</a>
+          <a href="#about" className="text-slate-400 hover:text-white transition">About</a>
+          <button className="bg-blue-600 hover:bg-blue-500 text-white px-5 py-2 rounded-full font-medium transition">
+            Get Started
+          </button>
+        </div>
+      </nav>
 
-        <div style={{marginTop:20, borderTop:"1px solid #e5e7eb"}}>
-          <div style={{display:"flex", gap:10, fontSize:11, fontWeight:700, color:"#6b7280", padding:"10px 0", borderBottom:"1px solid #e5e7eb"}}>
-            <div style={{flex:1.2}}>MATERIAL</div><div style={{flex:1.2}}>BRAND</div><div style={{flex:0.8}}>SIZE / SPEC</div><div style={{flex:0.5}}>UNIT</div><div style={{flex:0.4}}>QTY</div><div style={{flex:0.6}}>RATE</div><div style={{flex:0.8, textAlign:"right"}}>AMOUNT</div>
+      {/* Hero Section */}
+      <section className="max-w-5xl mx-auto text-center py-24 px-6">
+        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 border border-slate-800 text-sm text-blue-400 mb-8">
+          <Sparkles className="w-4 h-4" /> Next-Generation Platform
+        </div>
+        <h1 className="text-5xl md:text-7xl font-extrabold tracking-tight mb-8">
+          Build faster with <br />
+          <span className="bg-gradient-to-r from-blue-400 via-purple-400 to-pink-500 bg-clip-text text-transparent">
+            Modern Architecture
+          </span>
+        </h1>
+        <p className="text-lg md:text-xl text-slate-400 max-w-2xl mx-auto mb-10">
+          Create high-performance web applications with clean design, maximum efficiency, and seamless user experience.
+        </p>
+        <div className="flex justify-center gap-4">
+          <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white px-8 py-4 rounded-xl font-semibold transition">
+            Start Building <ArrowRight className="w-5 h-5" />
+          </button>
+          <button className="border border-slate-700 hover:bg-slate-900 text-slate-300 px-8 py-4 rounded-xl font-semibold transition">
+            View Documentation
+          </button>
+        </div>
+      </section>
+
+      {/* Features Grid */}
+      <section id="features" className="max-w-7xl mx-auto py-20 px-6 border-t border-slate-900">
+        <h2 className="text-3xl font-bold text-center mb-16">Why Choose BuildNaro?</h2>
+        <div className="grid md:grid-grid-cols-3 gap-8">
+          <div className="bg-slate-900/50 border border-slate-800 p-8 rounded-2xl hover:border-slate-700 transition">
+            <Zap className="w-10 h-10 text-blue-400 mb-4" />
+            <h3 className="text-xl font-bold mb-2">Blazing Fast</h3>
+            <p className="text-slate-400">Optimized performance out of the box ensuring instant page loads.</p>
           </div>
-          {mats.map((m,i)=>(
-            <div key={i} style={{display:"flex", gap:10, padding:"10px 0", borderBottom:"1px solid #f3f4f6", fontSize:13}}>
-              <div style={{flex:1.2}}>{m.mat}</div><div style={{flex:1.2}}>{m.brand}</div><div style={{flex:0.8}}>{m.spec}</div><div style={{flex:0.5}}>{m.unit}</div><div style={{flex:0.4}}>{m.qty}</div><div style={{flex:0.6}}>{fmt(m.rate)}</div><div style={{flex:0.8, textAlign:"right", fontWeight:600}}>{fmt(m.qty*m.rate)}</div>
-            </div>
-          ))}
+          <div className="bg-slate-900/50 border border-slate-800 p-8 rounded-2xl hover:border-slate-700 transition">
+            <Shield className="w-10 h-10 text-purple-400 mb-4" />
+            <h3 className="text-xl font-bold mb-2">Secure & Reliable</h3>
+            <p className="text-slate-400">Enterprise-grade security standards to keep your data protected.</p>
+          </div>
+          <div className="bg-slate-900/50 border border-slate-800 p-8 rounded-2xl hover:border-slate-700 transition">
+            <CheckCircle2 className="w-10 h-10 text-pink-400 mb-4" />
+            <h3 className="text-xl font-bold mb-2">Easy Integration</h3>
+            <p className="text-slate-400">Seamlessly connect with your existing tools and modern tech stack.</p>
+          </div>
         </div>
+      </section>
 
-        <div style={{marginTop:20}}>
-          <div style={{display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #eee"}}><span>Material Subtotal</span><b>{fmt(subtotal)}</b></div>
-          <div style={{display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #eee"}}><span>Labour</span><b>{fmt(labour)}</b></div>
-          <div style={{display:"flex", justifyContent:"space-between", padding:"10px 0", borderBottom:"1px solid #eee"}}><span>Transport</span><b>{fmt(transport)}</b></div>
-          <div style={{display:"flex", justifyContent:"space-between", padding:"14px 0", borderTop:"2px solid #111", fontWeight:800, fontSize:18}}><span>Grand Total</span><span>{fmt(grand)}</span></div>
-          <div style={{fontSize:11, color:"#aaa", marginTop:12}}>Rates are user-entered estimates and may vary from actual market prices.</div>
-        </div>
-      </div>
+      {/* Footer */}
+      <footer className="border-t border-slate-900 py-8 text-center text-slate-500 text-sm">
+        © 2026 BuildNaro. All rights reserved.
+      </footer>
     </div>
   );
 }
