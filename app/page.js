@@ -1,1 +1,5 @@
-export { default } from "./CalculatorApp";
+import Calculator from "./CalculatorApp";
+
+export default function Page() {
+  return <Calculator />;
+}
