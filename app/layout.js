@@ -3,14 +3,13 @@ import Script from "next/script";
 
 export const metadata = {
   title: "BuildNaro - House Construction Cost Calculator",
-  description: "Estimate your house construction cost in 30 seconds. Instant BOQ for cement, sand, bricks, steel.",
+  description: "Estimate your house construction cost in 30 seconds.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
-        {/* AdSense - Client ID preserved - Income safe */}
         <Script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-8305568320429251"
