@@ -88,3 +88,11 @@ footer{border-top:1px solid #e7ebf2;padding:34px 0;background:#fff}
 .sub-grid label{display:flex;flex-direction:column;font-size:12px;font-weight:700;color:#4e5d73;gap:4px}
 .sub-grid input{padding:8px 10px;border-radius:8px;border:1px solid #d9e0ea;font:inherit}
 @media(max-width:700px){.sub-grid{grid-template-columns:1fr 1fr}}
+
+/* ===== Single-ad download gate ===== */
+.ad-modal-backdrop{position:fixed;inset:0;background:rgba(15,23,42,.55);display:flex;align-items:center;justify-content:center;z-index:999;padding:16px}
+.ad-modal{background:#fff;border-radius:16px;padding:18px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.ad-modal-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.5px;text-transform:uppercase;color:#9aa5b8;font-weight:800;margin-bottom:10px}
+.ad-modal-close{background:none;border:0;color:#9aa5b8;font-size:20px;line-height:1;padding:0 4px;cursor:pointer;font-weight:400}
+.ad-modal-continue{width:100%;margin-top:14px;background:#2864df}
+.ad-modal-continue:disabled{background:#c3cbda;cursor:not-allowed}
