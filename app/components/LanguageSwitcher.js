@@ -1,13 +1,16 @@
-'use client'
+'use client';
+
+import { useLanguage } from "../i18n/LanguageContext";
 
 export default function LanguageSwitcher() {
-  const languages = [
-    { code: 'bn', native: 'বাংলা' },
-    { code: 'en', native: 'English' }
-  ];
+  const { lang, setLang, languages } = useLanguage();
 
   return (
-    <select aria-label="Choose language">
+    <select
+      aria-label="Choose language"
+      value={lang}
+      onChange={(e) => setLang(e.target.value)}
+    >
       {languages && languages.map((l) => (
         <option key={l.code} value={l.code}>
           {l.native}
