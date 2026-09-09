@@ -62,7 +62,7 @@ const UNITS = [
   "Dozen","Pair","Trip","Load","Hour","Day","Inch","mm","Unit"
 ];
 
-// Material name -> the exact units relevant to it (still typeable/free-form via datalist)
+// Material name -> the exact units relevant to it (a manual "Other" option is always available too)
 const MATERIAL_UNIT_OPTIONS = {
   "Cement":["Bag","Kg","Ton"],
   "TMT Steel Bars":["Kg","Ton","Bag"],
@@ -144,6 +144,9 @@ export default function Calculator() {
   ]);
   const [saved,setSaved]=useState(false);
 
+  // Tracks which BOQ rows are in "type your own unit" mode
+  const [customUnitRows, setCustomUnitRows] = useState({});
+
   // ---- Ad gate: show exactly one ad before any download starts ----
   const [pendingDownload, setPendingDownload] = useState(null); // "jpg" | "excel" | "pdf" | null
   const [adSeconds, setAdSeconds] = useState(3);
@@ -190,14 +193,26 @@ export default function Calculator() {
   const grandTotal = taxable+tax;
 
   const updateProject=(key,value)=>setProject(p=>({...p,[key]:value}));
-  const setMaterialName=(i,value)=>setMaterials(list=>list.map((m,idx)=>{
-    if(idx!==i) return m;
-    const unit = MATERIAL_UNIT_MAP[value] || m.unit;
-    return {...m,name:value,unit};
-  }));
+  const setMaterialName=(i,value)=>{
+    setCustomUnitRows(f=>({...f,[i]:false}));
+    setMaterials(list=>list.map((m,idx)=>{
+      if(idx!==i) return m;
+      const unit = MATERIAL_UNIT_MAP[value] || m.unit;
+      return {...m,name:value,unit};
+    }));
+  };
   const updateMaterial=(i,key,value)=>setMaterials(list=>list.map((m,idx)=>idx===i?{...m,[key]:value}:m));
   const addMaterial=()=>setMaterials(l=>[...l,{name:"",brand:"",size:"",unit:"Unit",qty:0,rate:0}]);
   const removeMaterial=i=>setMaterials(l=>l.filter((_,idx)=>idx!==i));
+  const setUnitFromSelect = (i, value) => {
+    if (value === "__custom__") {
+      setCustomUnitRows(f=>({...f,[i]:true}));
+      updateMaterial(i,"unit","");
+    } else {
+      setCustomUnitRows(f=>({...f,[i]:false}));
+      updateMaterial(i,"unit",value);
+    }
+  };
   const saveEstimate=()=>{localStorage.setItem("buildnaro-estimate",JSON.stringify({project,materials,materialSubtotal,grandTotal,savedAt:new Date().toISOString()}));setSaved(true);setTimeout(()=>setSaved(false),2000)};
 
   // ---- Downloads ----
@@ -295,6 +310,8 @@ export default function Calculator() {
           const brandOptions = brandKey ? MATERIAL_BRAND_MAP[brandKey] : GENERIC_BRANDS;
           const sizeOptions = isRodLike(m.name) ? ROD_SIZES : [];
           const unitOptions = getUnitOptions(m.name);
+          const isCustomUnit = !!customUnitRows[i] || (m.unit && !unitOptions.includes(m.unit));
+          const selectValue = isCustomUnit ? "__custom__" : m.unit;
           return <tr key={i}>
           <td className="mat-row-name"><input list="material-suggestions" value={m.name} placeholder={t("material_name_ph")} onChange={e=>setMaterialName(i,e.target.value)}/></td>
           <td><input list={`brand-list-${i}`} value={m.brand} placeholder={t("brand_ph")} onChange={e=>updateMaterial(i,"brand",e.target.value)}/>
@@ -303,8 +320,21 @@ export default function Calculator() {
           <td><input list={`size-list-${i}`} value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)}/>
             <datalist id={`size-list-${i}`}>{sizeOptions.map(s=><option key={s} value={s}/>)}</datalist>
           </td>
-          <td><input list={`unit-list-${i}`} value={m.unit} placeholder={t("opt_none_custom")} onChange={e=>updateMaterial(i,"unit",e.target.value)}/>
-            <datalist id={`unit-list-${i}`}>{unitOptions.map(u=><option key={u} value={u}/>)}</datalist>
+          <td>
+            <select value={selectValue} onChange={e=>setUnitFromSelect(i,e.target.value)}>
+              <option value="">{t("opt_none_custom")}</option>
+              {unitOptions.map(u=><option key={u} value={u}>{u}</option>)}
+              <option value="__custom__">Other (type manually)</option>
+            </select>
+            {isCustomUnit && (
+              <input
+                type="text"
+                value={m.unit}
+                placeholder="Type unit"
+                onChange={e=>updateMaterial(i,"unit",e.target.value)}
+                style={{marginTop:6,width:"100%"}}
+              />
+            )}
           </td>
           <td><input type="number" min="0" step="any" value={m.qty} onChange={e=>updateMaterial(i,"qty",e.target.value)}/></td>
           <td><input type="number" min="0" step="any" value={m.rate} onChange={e=>updateMaterial(i,"rate",e.target.value)}/></td>
