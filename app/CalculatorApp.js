@@ -58,18 +58,18 @@ const isRodLike = (name) => /rod|steel|tmt|bar/i.test(name || "");
 
 const UNITS = [
   "Bag","Kg","Ton","Quintal","Litre","Gallon","CFT","Cubic Meter (m³)","Sq ft","Sq m","Sq yd",
-  "Running ft","Running meter","Nos","Set","Roll","Sheet","Box","Bundle","Meter","Point",
+  "Running ft","Running meter","Nos","Piece","Set","Roll","Sheet","Box","Bundle","Meter","Point",
   "Dozen","Pair","Trip","Load","Hour","Day","Inch","mm","Unit"
 ];
 
 // Material name -> the exact units relevant to it (a manual "Other" option is always available too)
 const MATERIAL_UNIT_OPTIONS = {
   "Cement":["Bag","Kg","Ton"],
-  "TMT Steel Bars":["Kg","Ton","Bag"],
+  "TMT Steel Bars":["Kg","Ton","Piece"],
   "Sand":["CFT","Cubic Meter (m³)","Ton","Trip","Load"],
   "Stone Aggregate / Chips":["CFT","Cubic Meter (m³)","Ton","Trip","Load"],
-  "Bricks":["Nos","Box"],
-  "AAC Blocks":["Nos","CFT"],
+  "Bricks":["Nos","Piece","Box"],
+  "AAC Blocks":["Nos","Piece","CFT"],
   "Ready Mix Concrete":["Cubic Meter (m³)","CFT"],
   "Vitrified Tiles":["Sq ft","Sq m","Box"],
   "Ceramic Tiles":["Sq ft","Sq m","Box"],
@@ -83,18 +83,18 @@ const MATERIAL_UNIT_OPTIONS = {
   "Exterior Paint":["Litre","Gallon"],
   "Primer":["Litre","Gallon"],
   "Wall Putty":["Kg","Bag"],
-  "PVC Pipe":["Running ft","Running meter","Nos"],
-  "CPVC Pipe":["Running ft","Running meter","Nos"],
+  "PVC Pipe":["Running ft","Running meter","Piece"],
+  "CPVC Pipe":["Running ft","Running meter","Piece"],
   "Electrical Wire":["Roll","Running ft","Meter"],
-  "MCB / Switchgear":["Nos","Set"],
-  "Modular Switches":["Nos","Set"],
+  "MCB / Switchgear":["Nos","Piece","Set"],
+  "Modular Switches":["Nos","Piece","Set"],
   "Wood / Timber":["CFT","Running ft"],
-  "Flush Door":["Nos","Set"],
-  "Door Frame":["Nos","Set"],
-  "UPVC Window":["Sq ft","Nos"],
-  "Aluminium Window":["Sq ft","Nos"],
+  "Flush Door":["Nos","Piece","Set"],
+  "Door Frame":["Nos","Piece","Set"],
+  "UPVC Window":["Sq ft","Nos","Piece"],
+  "Aluminium Window":["Sq ft","Nos","Piece"],
   "Glass":["Sq ft","Sq m"],
-  "Door & Window Hardware":["Set","Nos"],
+  "Door & Window Hardware":["Set","Nos","Piece"],
   "Waterproofing Chemical":["Litre","Kg"],
   "Bitumen / Tar":["Kg","Litre"],
   "Gypsum Board":["Sheet","Sq ft"],
@@ -104,22 +104,23 @@ const MATERIAL_UNIT_OPTIONS = {
   "False Ceiling Grid":["Sq ft","Running ft"],
   "Modular Kitchen":["Running ft","Sq ft"],
   "Wardrobe":["Sq ft","Running ft"],
-  "Sanitaryware (WC/Basin)":["Set","Nos"],
-  "CP Fittings (Taps/Mixers)":["Set","Nos"],
-  "Water Storage Tank":["Nos","Litre"],
-  "Roofing Sheet":["Sq ft","Nos"],
+  "Sanitaryware (WC/Basin)":["Set","Nos","Piece"],
+  "CP Fittings (Taps/Mixers)":["Set","Nos","Piece"],
+  "Water Storage Tank":["Nos","Piece","Litre"],
+  "Roofing Sheet":["Sq ft","Nos","Piece"],
   "MS Fencing":["Running ft","Kg"],
-  "Interlocking Pavers":["Sq ft","Nos"],
-  "Curtains":["Nos","Set"],
+  "Interlocking Pavers":["Sq ft","Nos","Piece"],
+  "Curtains":["Nos","Piece","Set"],
   "Wallpaper":["Roll","Sq ft"],
-  "Light Fixtures":["Nos","Set"],
-  "Split AC":["Nos","Set"],
-  "Furniture":["Nos","Set"],
+  "Light Fixtures":["Nos","Piece","Set"],
+  "Split AC":["Nos","Piece","Set"],
+  "Furniture":["Nos","Piece","Set"],
   "Binding Wire (GI Wire)":["Kg","Roll"],
   "Nails (Perek)":["Kg","Box"],
-  "Shuttering Pins":["Nos","Kg"],
+  "Shuttering Pins":["Nos","Piece","Kg"],
 };
 const getUnitOptions = (materialName) => MATERIAL_UNIT_OPTIONS[materialName] || UNITS;
+const AREA_UNITS = ["sq ft","sq m","sq yd"];
 
 const money = (value, currency) => new Intl.NumberFormat("en-IN", { style:"currency", currency, maximumFractionDigits:2 }).format(Number(value)||0);
 
@@ -146,6 +147,7 @@ export default function Calculator() {
 
   // Tracks which BOQ rows are in "type your own unit" mode
   const [customUnitRows, setCustomUnitRows] = useState({});
+  const [customAreaUnit, setCustomAreaUnit] = useState(false);
 
   // ---- Ad gate: show exactly one ad before any download starts ----
   const [pendingDownload, setPendingDownload] = useState(null); // "jpg" | "excel" | "pdf" | null
@@ -212,6 +214,10 @@ export default function Calculator() {
       setCustomUnitRows(f=>({...f,[i]:false}));
       updateMaterial(i,"unit",value);
     }
+  };
+  const setAreaUnitFromSelect = (value) => {
+    if (value === "__custom__") { setCustomAreaUnit(true); updateProject("areaUnit",""); }
+    else { setCustomAreaUnit(false); updateProject("areaUnit",value); }
   };
   const saveEstimate=()=>{localStorage.setItem("buildnaro-estimate",JSON.stringify({project,materials,materialSubtotal,grandTotal,savedAt:new Date().toISOString()}));setSaved(true);setTimeout(()=>setSaved(false),2000)};
 
@@ -291,7 +297,14 @@ export default function Calculator() {
           <label>{t("pd_calc_mode")}<select value={project.mode} onChange={e=>updateProject("mode",e.target.value)}><option value="area">{t("pd_mode_area")}</option><option value="boq">{t("pd_mode_boq")}</option><option value="both">{t("pd_mode_both")}</option></select></label>
           {(project.mode==="area"||project.mode==="both")&&<>
             <label>{t("pd_area")}<input type="number" min="0" value={project.area} onChange={e=>updateProject("area",e.target.value)}/></label>
-            <label>{t("pd_area_unit")}<select value={project.areaUnit} onChange={e=>updateProject("areaUnit",e.target.value)}><option value="">{t("opt_none_custom")}</option><option>sq ft</option><option>sq m</option><option>sq yd</option></select></label>
+            <label>{t("pd_area_unit")}
+              <select value={customAreaUnit ? "__custom__" : project.areaUnit} onChange={e=>setAreaUnitFromSelect(e.target.value)}>
+                <option value="">{t("opt_none_custom")}</option>
+                {AREA_UNITS.map(u=><option key={u} value={u}>{u}</option>)}
+                <option value="__custom__">Other (type manually)</option>
+              </select>
+              {customAreaUnit && <input type="text" value={project.areaUnit} placeholder="Type unit" onChange={e=>updateProject("areaUnit",e.target.value)} style={{marginTop:6,width:"100%"}}/>}
+            </label>
             <label>{t("pd_rate")}<input type="number" min="0" value={project.rate} onChange={e=>updateProject("rate",e.target.value)}/></label>
           </>}
         </div></div>
