@@ -55,6 +55,8 @@ const MATERIAL_BRAND_MAP = {
 const GENERIC_BRANDS = ["Local / Unbranded"];
 const ROD_SIZES = ["6 mm","8 mm","10 mm","12 mm","16 mm","20 mm","25 mm","32 mm"];
 const isRodLike = (name) => /rod|steel|tmt|bar/i.test(name || "");
+const STONE_CHIP_SIZES = ["3/8\" (10 mm)","1/2\" (12 mm)","5/8\" (16 mm)","3/4\" (20 mm)","1\" (25 mm)","1.5\" (40 mm)"];
+const isStoneChipLike = (name) => /stone|aggregate|chips|grit|gitti/i.test(name || "");
 
 const UNITS = [
   "Bag","Kg","Ton","Quintal","Litre","Gallon","CFT","Cubic Meter (m³)","Sq ft","Sq m","Sq yd",
@@ -120,6 +122,11 @@ const MATERIAL_UNIT_OPTIONS = {
   "Shuttering Pins":["Nos","Piece","Kg"],
 };
 const getUnitOptions = (materialName) => MATERIAL_UNIT_OPTIONS[materialName] || UNITS;
+const getSizeOptions = (materialName) => {
+  if (isRodLike(materialName)) return ROD_SIZES;
+  if (isStoneChipLike(materialName)) return STONE_CHIP_SIZES;
+  return [];
+};
 const AREA_UNITS = ["sq ft","sq m","sq yd"];
 
 const money = (value, currency) => new Intl.NumberFormat("en-IN", { style:"currency", currency, maximumFractionDigits:2 }).format(Number(value)||0);
@@ -145,8 +152,9 @@ export default function Calculator() {
   ]);
   const [saved,setSaved]=useState(false);
 
-  // Tracks which BOQ rows are in "type your own unit" mode
+  // Tracks which BOQ rows are in "type your own unit/size" mode
   const [customUnitRows, setCustomUnitRows] = useState({});
+  const [customSizeRows, setCustomSizeRows] = useState({});
   const [customAreaUnit, setCustomAreaUnit] = useState(false);
 
   // ---- Ad gate: show exactly one ad before any download starts ----
@@ -197,10 +205,11 @@ export default function Calculator() {
   const updateProject=(key,value)=>setProject(p=>({...p,[key]:value}));
   const setMaterialName=(i,value)=>{
     setCustomUnitRows(f=>({...f,[i]:false}));
+    setCustomSizeRows(f=>({...f,[i]:false}));
     setMaterials(list=>list.map((m,idx)=>{
       if(idx!==i) return m;
       const unit = MATERIAL_UNIT_MAP[value] || m.unit;
-      return {...m,name:value,unit};
+      return {...m,name:value,unit,size:""};
     }));
   };
   const updateMaterial=(i,key,value)=>setMaterials(list=>list.map((m,idx)=>idx===i?{...m,[key]:value}:m));
@@ -213,6 +222,15 @@ export default function Calculator() {
     } else {
       setCustomUnitRows(f=>({...f,[i]:false}));
       updateMaterial(i,"unit",value);
+    }
+  };
+  const setSizeFromSelect = (i, value) => {
+    if (value === "__custom__") {
+      setCustomSizeRows(f=>({...f,[i]:true}));
+      updateMaterial(i,"size","");
+    } else {
+      setCustomSizeRows(f=>({...f,[i]:false}));
+      updateMaterial(i,"size",value);
     }
   };
   const setAreaUnitFromSelect = (value) => {
@@ -321,20 +339,36 @@ export default function Calculator() {
           const amount=(Number(m.qty)||0)*(Number(m.rate)||0);
           const brandKey = Object.keys(MATERIAL_BRAND_MAP).find(k=>(m.name||"").toLowerCase().includes(k.toLowerCase()));
           const brandOptions = brandKey ? MATERIAL_BRAND_MAP[brandKey] : GENERIC_BRANDS;
-          const sizeOptions = isRodLike(m.name) ? ROD_SIZES : [];
+          const sizeOptions = getSizeOptions(m.name);
           const unitOptions = getUnitOptions(m.name);
           const isCustomUnit = !!customUnitRows[i] || (m.unit && !unitOptions.includes(m.unit));
-          const selectValue = isCustomUnit ? "__custom__" : m.unit;
+          const unitSelectValue = isCustomUnit ? "__custom__" : m.unit;
+          const hasSizeOptions = sizeOptions.length > 0;
+          const isCustomSize = !!customSizeRows[i] || (hasSizeOptions && m.size && !sizeOptions.includes(m.size));
+          const sizeSelectValue = isCustomSize ? "__custom__" : m.size;
           return <tr key={i}>
           <td className="mat-row-name"><input list="material-suggestions" value={m.name} placeholder={t("material_name_ph")} onChange={e=>setMaterialName(i,e.target.value)}/></td>
           <td><input list={`brand-list-${i}`} value={m.brand} placeholder={t("brand_ph")} onChange={e=>updateMaterial(i,"brand",e.target.value)}/>
             <datalist id={`brand-list-${i}`}>{brandOptions.map(b=><option key={b} value={b}/>)}</datalist>
           </td>
-          <td><input list={`size-list-${i}`} value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)}/>
-            <datalist id={`size-list-${i}`}>{sizeOptions.map(s=><option key={s} value={s}/>)}</datalist>
+          <td>
+            {hasSizeOptions ? (
+              <>
+                <select value={sizeSelectValue} onChange={e=>setSizeFromSelect(i,e.target.value)}>
+                  <option value="">{t("opt_none_custom")}</option>
+                  {sizeOptions.map(s=><option key={s} value={s}>{s}</option>)}
+                  <option value="__custom__">Other (type manually)</option>
+                </select>
+                {isCustomSize && (
+                  <input type="text" value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)} style={{marginTop:6,width:"100%"}}/>
+                )}
+              </>
+            ) : (
+              <input value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)}/>
+            )}
           </td>
           <td>
-            <select value={selectValue} onChange={e=>setUnitFromSelect(i,e.target.value)}>
+            <select value={unitSelectValue} onChange={e=>setUnitFromSelect(i,e.target.value)}>
               <option value="">{t("opt_none_custom")}</option>
               {unitOptions.map(u=><option key={u} value={u}>{u}</option>)}
               <option value="__custom__">Other (type manually)</option>
