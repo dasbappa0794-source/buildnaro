@@ -62,23 +62,64 @@ const UNITS = [
   "Dozen","Pair","Trip","Load","Hour","Day","Inch","mm","Unit"
 ];
 
-// Group units by category so each material only shows relevant options
-const UNIT_GROUPS = {
-  weight: ["Bag","Kg","Ton","Quintal"],
-  liquid: ["Litre","Gallon"],
-  volume: ["CFT","Cubic Meter (m³)"],
-  area: ["Sq ft","Sq m","Sq yd"],
-  length: ["Running ft","Running meter","Meter","Inch","mm"],
-  count: ["Nos","Set","Roll","Sheet","Box","Bundle","Dozen","Pair","Unit","Point"],
-  time: ["Hour","Day","Trip","Load"],
+// Material name -> the exact units relevant to it (still typeable/free-form via datalist)
+const MATERIAL_UNIT_OPTIONS = {
+  "Cement":["Bag","Kg","Ton"],
+  "TMT Steel Bars":["Kg","Ton","Bag"],
+  "Sand":["CFT","Cubic Meter (m³)","Ton","Trip","Load"],
+  "Stone Aggregate / Chips":["CFT","Cubic Meter (m³)","Ton","Trip","Load"],
+  "Bricks":["Nos","Box"],
+  "AAC Blocks":["Nos","CFT"],
+  "Ready Mix Concrete":["Cubic Meter (m³)","CFT"],
+  "Vitrified Tiles":["Sq ft","Sq m","Box"],
+  "Ceramic Tiles":["Sq ft","Sq m","Box"],
+  "Marble":["Sq ft","Sq m"],
+  "Granite":["Sq ft","Sq m"],
+  "Plywood":["Sheet","Sq ft"],
+  "MDF Board":["Sheet","Sq ft"],
+  "Laminate Sheet":["Sheet","Sq ft"],
+  "Veneer":["Sheet","Sq ft"],
+  "Interior Paint":["Litre","Gallon"],
+  "Exterior Paint":["Litre","Gallon"],
+  "Primer":["Litre","Gallon"],
+  "Wall Putty":["Kg","Bag"],
+  "PVC Pipe":["Running ft","Running meter","Nos"],
+  "CPVC Pipe":["Running ft","Running meter","Nos"],
+  "Electrical Wire":["Roll","Running ft","Meter"],
+  "MCB / Switchgear":["Nos","Set"],
+  "Modular Switches":["Nos","Set"],
+  "Wood / Timber":["CFT","Running ft"],
+  "Flush Door":["Nos","Set"],
+  "Door Frame":["Nos","Set"],
+  "UPVC Window":["Sq ft","Nos"],
+  "Aluminium Window":["Sq ft","Nos"],
+  "Glass":["Sq ft","Sq m"],
+  "Door & Window Hardware":["Set","Nos"],
+  "Waterproofing Chemical":["Litre","Kg"],
+  "Bitumen / Tar":["Kg","Litre"],
+  "Gypsum Board":["Sheet","Sq ft"],
+  "POP (Plaster of Paris)":["Bag","Kg"],
+  "Tile Adhesive":["Bag","Kg"],
+  "Tile Grout":["Kg","Bag"],
+  "False Ceiling Grid":["Sq ft","Running ft"],
+  "Modular Kitchen":["Running ft","Sq ft"],
+  "Wardrobe":["Sq ft","Running ft"],
+  "Sanitaryware (WC/Basin)":["Set","Nos"],
+  "CP Fittings (Taps/Mixers)":["Set","Nos"],
+  "Water Storage Tank":["Nos","Litre"],
+  "Roofing Sheet":["Sq ft","Nos"],
+  "MS Fencing":["Running ft","Kg"],
+  "Interlocking Pavers":["Sq ft","Nos"],
+  "Curtains":["Nos","Set"],
+  "Wallpaper":["Roll","Sq ft"],
+  "Light Fixtures":["Nos","Set"],
+  "Split AC":["Nos","Set"],
+  "Furniture":["Nos","Set"],
+  "Binding Wire (GI Wire)":["Kg","Roll"],
+  "Nails (Perek)":["Kg","Box"],
+  "Shuttering Pins":["Nos","Kg"],
 };
-const UNIT_TO_GROUP = Object.entries(UNIT_GROUPS).reduce((acc,[g,units])=>{units.forEach(u=>acc[u]=g);return acc;},{});
-const getUnitOptions = (materialName) => {
-  const defaultUnit = MATERIAL_UNIT_MAP[materialName];
-  if (!defaultUnit) return UNITS;
-  const group = UNIT_TO_GROUP[defaultUnit];
-  return group ? UNIT_GROUPS[group] : UNITS;
-};
+const getUnitOptions = (materialName) => MATERIAL_UNIT_OPTIONS[materialName] || UNITS;
 
 const money = (value, currency) => new Intl.NumberFormat("en-IN", { style:"currency", currency, maximumFractionDigits:2 }).format(Number(value)||0);
 
@@ -262,7 +303,9 @@ export default function Calculator() {
           <td><input list={`size-list-${i}`} value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)}/>
             <datalist id={`size-list-${i}`}>{sizeOptions.map(s=><option key={s} value={s}/>)}</datalist>
           </td>
-          <td><select value={m.unit} onChange={e=>updateMaterial(i,"unit",e.target.value)}><option value="">{t("opt_none_custom")}</option>{unitOptions.map(x=><option key={x}>{x}</option>)}</select></td>
+          <td><input list={`unit-list-${i}`} value={m.unit} placeholder={t("opt_none_custom")} onChange={e=>updateMaterial(i,"unit",e.target.value)}/>
+            <datalist id={`unit-list-${i}`}>{unitOptions.map(u=><option key={u} value={u}/>)}</datalist>
+          </td>
           <td><input type="number" min="0" step="any" value={m.qty} onChange={e=>updateMaterial(i,"qty",e.target.value)}/></td>
           <td><input type="number" min="0" step="any" value={m.rate} onChange={e=>updateMaterial(i,"rate",e.target.value)}/></td>
           <td className="amount">{money(amount,project.currency)}</td><td><button className="delete" aria-label="Remove" onClick={()=>removeMaterial(i)}>×</button></td>
