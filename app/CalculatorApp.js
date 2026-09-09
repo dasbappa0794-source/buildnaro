@@ -53,10 +53,11 @@ const MATERIAL_BRAND_MAP = {
   "Water Storage Tank":["Sintex","Supreme","Ashirvad"],
 };
 const GENERIC_BRANDS = ["Local / Unbranded"];
-const ROD_SIZES = ["6 mm","8 mm","10 mm","12 mm","16 mm","20 mm","25 mm","32 mm"];
+
 const isRodLike = (name) => /rod|steel|tmt|bar/i.test(name || "");
-const STONE_CHIP_SIZES = ["3/8\" (10 mm)","1/2\" (12 mm)","5/8\" (16 mm)","3/4\" (20 mm)","1\" (25 mm)","1.5\" (40 mm)"];
 const isStoneChipLike = (name) => /stone|aggregate|chips|grit|gitti/i.test(name || "");
+const ROD_SIZES = ["6 mm","8 mm","10 mm","12 mm","16 mm","20 mm","25 mm","32 mm"];
+const STONE_CHIP_SIZES = ["3/8\" (10 mm)","1/2\" (12 mm)","5/8\" (16 mm)","3/4\" (20 mm)","1\" (25 mm)","1.5\" (40 mm)"];
 
 const UNITS = [
   "Bag","Kg","Ton","Quintal","Litre","Gallon","CFT","Cubic Meter (m³)","Sq ft","Sq m","Sq yd",
@@ -122,11 +123,38 @@ const MATERIAL_UNIT_OPTIONS = {
   "Shuttering Pins":["Nos","Piece","Kg"],
 };
 const getUnitOptions = (materialName) => MATERIAL_UNIT_OPTIONS[materialName] || UNITS;
+
+// Material name -> the exact size/spec options relevant to it (a manual "Other" option is always available too)
+const MATERIAL_SIZE_OPTIONS = {
+  "TMT Steel Bars": ROD_SIZES,
+  "Stone Aggregate / Chips": STONE_CHIP_SIZES,
+  "Sand": ["River Sand","M-Sand (Manufactured Sand)","P-Sand (Plastering Sand)","Coarse Sand","Fine Sand","Concrete Sand"],
+  "Bricks": ["9x4x3 in (Standard)","9x4x4 in","8x4x4 in (Modular)","Wire Cut Brick","Fly Ash Brick"],
+  "AAC Blocks": ["600x200x100 mm","600x200x150 mm","600x200x200 mm","600x200x225 mm"],
+  "Vitrified Tiles": ["300x300 mm","600x600 mm (2x2 ft)","600x1200 mm","800x800 mm","1000x1000 mm"],
+  "Ceramic Tiles": ["200x300 mm","300x300 mm","300x600 mm","600x600 mm"],
+  "Marble": ["16-18 mm (Standard)","20 mm"],
+  "Granite": ["16-18 mm (Standard)","20 mm"],
+  "Plywood": ["6 mm","9 mm","12 mm","16 mm","18 mm","19 mm"],
+  "MDF Board": ["6 mm","9 mm","12 mm","18 mm"],
+  "Laminate Sheet": ["0.8 mm","1 mm","1.5 mm"],
+  "Glass": ["4 mm","5 mm","6 mm","8 mm","10 mm","12 mm"],
+  "PVC Pipe": ["1/2\" (15 mm)","3/4\" (20 mm)","1\" (25 mm)","1.25\" (32 mm)","1.5\" (40 mm)","2\" (50 mm)","4\" (110 mm)"],
+  "CPVC Pipe": ["1/2\" (15 mm)","3/4\" (20 mm)","1\" (25 mm)","1.25\" (32 mm)","1.5\" (40 mm)"],
+  "Electrical Wire": ["1.0 sq mm","1.5 sq mm","2.5 sq mm","4 sq mm","6 sq mm","10 sq mm"],
+  "Gypsum Board": ["9.5 mm","12.5 mm","15 mm"],
+  "Wood / Timber": ["1x1 in","2x2 in","2x3 in","2x4 in","4x4 in"],
+  "Modular Switches": ["6A","16A","20A"],
+  "MCB / Switchgear": ["6A","16A","20A","32A","40A","63A"],
+  "Roofing Sheet": ["0.4 mm","0.5 mm","0.6 mm"],
+};
 const getSizeOptions = (materialName) => {
+  if (MATERIAL_SIZE_OPTIONS[materialName]) return MATERIAL_SIZE_OPTIONS[materialName];
   if (isRodLike(materialName)) return ROD_SIZES;
   if (isStoneChipLike(materialName)) return STONE_CHIP_SIZES;
   return [];
 };
+
 const AREA_UNITS = ["sq ft","sq m","sq yd"];
 
 const money = (value, currency) => new Intl.NumberFormat("en-IN", { style:"currency", currency, maximumFractionDigits:2 }).format(Number(value)||0);
