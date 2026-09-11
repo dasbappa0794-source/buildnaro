@@ -255,7 +255,7 @@ const ICONS = {
 
 // ---- UltraTech-style "Quick Estimate": fixed resource list, quantity auto from area, 3-tier quality ----
 const RESOURCE_CATALOG = [
-  { key:"cement", label:"Cement", unit:"Bag", factor:0.45, qualityLabels:["UltraTech Super","UltraTech Weatherplus","Normal PPC/PSC"], rates:{basic:300, medium:343, premium:400} },
+  { key:"cement", label:"Cement", unit:"Bag", factor:0.45, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:300, medium:343, premium:400} },
   { key:"steel", label:"Steel", unit:"Kg", factor:3.5, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:40, medium:46, premium:54} },
   { key:"bricks", label:"Bricks", unit:"Per Piece", factor:19, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:6, medium:7, premium:9} },
   { key:"aggregate", label:"Aggregate", unit:"Per Cubic feet", factor:1.9, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:28, medium:33, premium:40} },
@@ -440,15 +440,16 @@ export default function Calculator() {
     if (value === CITY_OTHER) { setCustomCity(true); updateProject("quickCity",""); }
     else { setCustomCity(false); updateProject("quickCity",value); }
   };
-  // ---- Quick Estimate (UltraTech-style resource + quality table) ----
-  const quickSqft = toSqft(project.area, project.areaUnit);
+  // ---- Quick Estimate: reacts to Project Details (Area, Floors, Construction Type) + Estimate Settings (State) ----
+  const quickSqft = toSqft(project.area, project.areaUnit) * Math.max(1, Number(project.floors)||1);
+  const defaultQuickTier = project.constructionType==="basic" ? "basic" : project.constructionType==="premium" ? "premium" : "medium";
   const setResourceQuality = (key, tier) => setProject(p=>({...p, resourceQuality:{...p.resourceQuality,[key]:tier}}));
   const quickRows = useMemo(()=>RESOURCE_CATALOG.map(r=>{
-    const tier = project.resourceQuality[r.key] || "medium";
+    const tier = project.resourceQuality[r.key] || defaultQuickTier;
     const qty = Math.round(quickSqft*r.factor);
     const rate = r.rates[tier];
     return { ...r, tier, qty, rate, amount: qty*rate };
-  }),[quickSqft, project.resourceQuality]);
+  }),[quickSqft, project.resourceQuality, defaultQuickTier]);
   const quickSubtotal = quickRows.reduce((s,r)=>s+r.amount,0);
   const quickLocationMultiplier = STATE_MULTIPLIERS[project.state] ?? 1;
   const quickTotal = quickSubtotal * quickLocationMultiplier;
@@ -643,7 +644,7 @@ export default function Calculator() {
       </div>
 
       <div className="card">
-        <div className="section-head"><div><h2><Icon path={ICONS.report}/> Quick Estimate — Cost by Resource Allocation</h2><p>Auto-calculated from Area ({project.area} {project.areaUnit}) + State. Pick a quality tier per resource.</p></div></div>
+        <div className="section-head"><div><h2><Icon path={ICONS.report}/> Quick Estimate — Cost by Resource Allocation</h2><p>Auto-calculated from Area ({project.area} {project.areaUnit}) × {project.floors} floor(s) + State. Defaults to your Construction Type ({CONSTRUCTION_TYPES.find(c=>c.key===project.constructionType)?.label}) — override any resource below.</p></div></div>
         <div className="table-wrap"><table><thead><tr><th>Resource</th><th>Quantity</th><th colSpan={3}>Quality</th><th>Amount</th></tr></thead><tbody>
           {quickRows.map(r=>(
             <tr key={r.key}>
