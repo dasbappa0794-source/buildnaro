@@ -172,9 +172,34 @@ const AUTO_FILL_UNITS = { "Cement":"Bag", "TMT Steel Bars":"Kg", "Sand":"CFT", "
 
 // ---- Illustrative state-wise rate adjustment (approximate; user's own local rates always take priority) ----
 const STATE_MULTIPLIERS = {
-  "Not selected":1.0, "Maharashtra":1.15, "Delhi NCR":1.2, "Karnataka":1.1, "Tamil Nadu":1.08,
-  "West Bengal":0.95, "Telangana":1.05, "Gujarat":1.0, "Uttar Pradesh":0.9, "Other":1.0,
+  "Not selected":1.0,
+  "Andhra Pradesh":1.0, "Arunachal Pradesh":0.95, "Assam":0.95, "Bihar":0.9, "Chandigarh":1.1,
+  "Chhattisgarh":0.95, "Delhi NCR":1.2, "Goa":1.1, "Gujarat":1.0, "Haryana":1.1,
+  "Himachal Pradesh":1.0, "Jammu & Kashmir":1.0, "Jharkhand":0.9, "Karnataka":1.1, "Kerala":1.05,
+  "Madhya Pradesh":0.95, "Maharashtra":1.15, "Manipur":0.95, "Meghalaya":0.95, "Mizoram":0.95,
+  "Nagaland":0.95, "Odisha":0.92, "Punjab":1.05, "Rajasthan":0.95, "Sikkim":1.0,
+  "Tamil Nadu":1.08, "Telangana":1.05, "Tripura":0.92, "Uttar Pradesh":0.9, "Uttarakhand":1.0,
+  "West Bengal":0.95, "Other / Union Territory":1.0,
 };
+// ---- A handful of representative cities per state (not exhaustive — "Other" always lets typing a custom city) ----
+const STATE_CITIES = {
+  "Delhi NCR":["New Delhi","Gurgaon","Noida","Faridabad","Ghaziabad"],
+  "Maharashtra":["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
+  "Karnataka":["Bangalore","Mysore","Mangalore","Hubli","Belgaum"],
+  "Tamil Nadu":["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem"],
+  "West Bengal":["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
+  "Telangana":["Hyderabad","Warangal","Nizamabad","Karimnagar"],
+  "Gujarat":["Ahmedabad","Surat","Vadodara","Rajkot"],
+  "Uttar Pradesh":["Lucknow","Kanpur","Noida","Agra","Varanasi"],
+  "Punjab":["Ludhiana","Amritsar","Jalandhar","Patiala"],
+  "Rajasthan":["Jaipur","Jodhpur","Udaipur","Kota"],
+  "Kerala":["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
+  "Haryana":["Gurgaon","Faridabad","Panipat","Ambala","Rohtak"],
+  "Madhya Pradesh":["Bhopal","Indore","Gwalior","Jabalpur"],
+  "Bihar":["Patna","Gaya","Bhagalpur","Muzaffarpur"],
+  "Odisha":["Bhubaneswar","Cuttack","Rourkela"],
+};
+const CITY_OTHER = "Other (type manually)";
 
 // ---- Ready-made BOQ starter templates (approximate quantities — meant to be edited after loading) ----
 const BOQ_TEMPLATES = {
@@ -223,7 +248,43 @@ const ICONS = {
   summary:"M4 19V5a1 1 0 011-1h9l5 5v10a1 1 0 01-1 1H5a1 1 0 01-1-1zM13 4v5h5M8 13h8M8 17h5",
   report:"M9 17v-6M13 17V7m4 10v-3M4 19h16",
   save:"M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8",
+  share:"M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14",
+  clock:"M12 22a10 10 0 100-20 10 10 0 000 20zM12 6v6l4 2",
+  bag:"M6 8V6a6 6 0 1112 0v2M4 8h16l-1.5 13a1 1 0 01-1 1H6.5a1 1 0 01-1-1L4 8z",
 };
+
+// ---- UltraTech-style "Quick Estimate": fixed resource list, quantity auto from area, 3-tier quality ----
+const RESOURCE_CATALOG = [
+  { key:"cement", label:"Cement", unit:"Bag", factor:0.45, qualityLabels:["UltraTech Super","UltraTech Weatherplus","Normal PPC/PSC"], rates:{basic:300, medium:343, premium:400} },
+  { key:"steel", label:"Steel", unit:"Kg", factor:3.5, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:40, medium:46, premium:54} },
+  { key:"bricks", label:"Bricks", unit:"Per Piece", factor:19, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:6, medium:7, premium:9} },
+  { key:"aggregate", label:"Aggregate", unit:"Per Cubic feet", factor:1.9, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:28, medium:33, premium:40} },
+  { key:"sand", label:"Sand", unit:"Per Cubic feet", factor:2.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:30, medium:36, premium:44} },
+  { key:"flooring", label:"Flooring", unit:"Per Sq feet", factor:1.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:65, medium:98, premium:160} },
+  { key:"windows", label:"Windows", unit:"Per Sq feet", factor:0.17, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:150, medium:206, premium:300} },
+  { key:"doors", label:"Doors", unit:"Per Sq feet", factor:0.18, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:180, medium:267, premium:400} },
+  { key:"electrical", label:"Electrical fittings", unit:"Per Sq feet", factor:0.15, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:55, medium:78, premium:110} },
+  { key:"painting", label:"Painting", unit:"Per Sq feet", factor:6.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:15, medium:22, premium:32} },
+  { key:"sanitary", label:"Sanitary Fittings", unit:"Per Sq feet", factor:1.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:40, medium:60, premium:90} },
+  { key:"kitchen", label:"Kitchen Work", unit:"Per Sq feet", factor:0.055, qualityLabels:["Platform and Sink","Semi Modular","Fully Modular"], rates:{basic:400, medium:818, premium:1500} },
+  { key:"contractor", label:"Contractor (RCC, Brickwork, Plaster work)", unit:"Per Sq feet", factor:1.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:140, medium:190, premium:260} },
+];
+const QUALITY_TIERS = ["basic","medium","premium"];
+
+// ---- Phase-wise cost split (approximate industry-standard %, for the donut chart) + rough duration in days (for the timeline chart) ----
+const PHASE_WEIGHTS = [
+  { label:"Home Design & Approval", pct:7.9, days:46, color:"#facc15" },
+  { label:"Excavation", pct:3.9, days:14, color:"#16a34a" },
+  { label:"Footing & Foundation", pct:28.8, days:41, color:"#111827" },
+  { label:"RCC Work – Columns & Slabs", pct:19.3, days:17, color:"#2563eb" },
+  { label:"Roof Slab", pct:16.1, days:37, color:"#dc2626" },
+  { label:"Brickwork & Plastering", pct:3.1, days:8, color:"#f472b6" },
+  { label:"Flooring & Tiling", pct:13.9, days:25, color:"#7c3aed" },
+  { label:"Electric Wiring", pct:3.9, days:14, color:"#f97316" },
+  { label:"Water Supply & Plumbing", pct:2.4, days:30, color:"#6b7280" },
+  { label:"Door", pct:0.7, days:15, color:"#eab308" },
+];
+const toSqft = (area, unit) => unit==="sq m" ? (Number(area)||0)*10.7639 : unit==="sq yd" ? (Number(area)||0)*9 : (Number(area)||0);
 
 export default function Calculator() {
   const { t } = useLanguage();
@@ -241,6 +302,7 @@ export default function Calculator() {
     masonCost:0, helperLabourCost:0, carpenterCost:0, electricalCost:0, plumbingCost:0,
     includeTransport:false, transport:0,
     commercialMode:false,
+    quickCity:"", resourceQuality:{},
   });
   const [materials, setMaterials] = useState([
     { name:"Cement", brand:"", size:"", unit:"Bag", qty:0, rate:500 },
@@ -260,6 +322,7 @@ export default function Calculator() {
   const [customUnitRows, setCustomUnitRows] = useState({});
   const [customSizeRows, setCustomSizeRows] = useState({});
   const [customAreaUnit, setCustomAreaUnit] = useState(false);
+  const [customCity, setCustomCity] = useState(false);
 
   // ---- Ad gate: show exactly one ad before any download starts ----
   const [pendingDownload, setPendingDownload] = useState(null); // "jpg" | "excel" | "pdf" | null
@@ -373,6 +436,50 @@ export default function Calculator() {
     if (value === "__custom__") { setCustomAreaUnit(true); updateProject("areaUnit",""); }
     else { setCustomAreaUnit(false); updateProject("areaUnit",value); }
   };
+  const setCityFromSelect = (value) => {
+    if (value === CITY_OTHER) { setCustomCity(true); updateProject("quickCity",""); }
+    else { setCustomCity(false); updateProject("quickCity",value); }
+  };
+  // ---- Quick Estimate (UltraTech-style resource + quality table) ----
+  const quickSqft = toSqft(project.area, project.areaUnit);
+  const setResourceQuality = (key, tier) => setProject(p=>({...p, resourceQuality:{...p.resourceQuality,[key]:tier}}));
+  const quickRows = useMemo(()=>RESOURCE_CATALOG.map(r=>{
+    const tier = project.resourceQuality[r.key] || "medium";
+    const qty = Math.round(quickSqft*r.factor);
+    const rate = r.rates[tier];
+    return { ...r, tier, qty, rate, amount: qty*rate };
+  }),[quickSqft, project.resourceQuality]);
+  const quickSubtotal = quickRows.reduce((s,r)=>s+r.amount,0);
+  const quickLocationMultiplier = STATE_MULTIPLIERS[project.state] ?? 1;
+  const quickTotal = quickSubtotal * quickLocationMultiplier;
+  const quickPhaseSlices = useMemo(()=>{
+    let acc = 0;
+    return PHASE_WEIGHTS.map(p=>{
+      const slice = { ...p, value: quickTotal*p.pct/100, start:acc };
+      acc += p.pct;
+      return slice;
+    });
+  },[quickTotal]);
+  const quickPieGradient = `conic-gradient(${quickPhaseSlices.map(s=>`${s.color} ${s.start}% ${s.start+s.pct}%`).join(",")})`;
+  const quickTimeline = useMemo(()=>{
+    let dayAcc = 0;
+    return PHASE_WEIGHTS.map(p=>{
+      const row = { ...p, cost: quickTotal*p.pct/100, dayStart:dayAcc };
+      dayAcc += p.days;
+      return row;
+    });
+  },[quickTotal]);
+  const quickTotalDays = PHASE_WEIGHTS.reduce((s,p)=>s+p.days,0);
+
+  const [shared,setShared]=useState(false);
+  const shareEstimate = async () => {
+    const text = `${project.name} — Estimated construction cost: ${money(quickTotal||grandTotal,project.currency)} (via BuildNaro)`;
+    try {
+      if (navigator.share) { await navigator.share({ title:"BuildNaro Estimate", text }); }
+      else { await navigator.clipboard.writeText(text); setShared(true); setTimeout(()=>setShared(false),2000); }
+    } catch(e){}
+  };
+
   const saveEstimate=()=>{
     const entry = { id: Date.now(), name: project.name||"Untitled Project", savedAt: new Date().toISOString(), grandTotal, project, materials };
     const next = [entry, ...savedProjects].slice(0,20);
@@ -493,6 +600,20 @@ export default function Calculator() {
               {Object.keys(STATE_MULTIPLIERS).map(s=><option key={s} value={s}>{s}</option>)}
             </select>
           </label>
+          <label>City
+            {STATE_CITIES[project.state] ? (
+              <>
+                <select value={customCity ? CITY_OTHER : project.quickCity} onChange={e=>setCityFromSelect(e.target.value)}>
+                  <option value="">— Select City —</option>
+                  {STATE_CITIES[project.state].map(c=><option key={c} value={c}>{c}</option>)}
+                  <option value={CITY_OTHER}>{CITY_OTHER}</option>
+                </select>
+                {customCity && <input type="text" value={project.quickCity} placeholder="Type your city" onChange={e=>updateProject("quickCity",e.target.value)} style={{marginTop:6,width:"100%"}}/>}
+              </>
+            ) : (
+              <input type="text" value={project.quickCity} placeholder="Type your city" onChange={e=>updateProject("quickCity",e.target.value)}/>
+            )}
+          </label>
           <label>BOQ Template
             <select value={selectedTemplate} onChange={e=>applyTemplate(e.target.value)}>
               <option value="">— Start from a template —</option>
@@ -519,6 +640,53 @@ export default function Calculator() {
             <label>{t("pd_rate")}<input type="number" min="0" value={project.rate} onChange={e=>updateProject("rate",e.target.value)}/></label>
           </>}
         </div></div>
+      </div>
+
+      <div className="card">
+        <div className="section-head"><div><h2><Icon path={ICONS.report}/> Quick Estimate — Cost by Resource Allocation</h2><p>Auto-calculated from Area ({project.area} {project.areaUnit}) + State. Pick a quality tier per resource.</p></div></div>
+        <div className="table-wrap"><table><thead><tr><th>Resource</th><th>Quantity</th><th colSpan={3}>Quality</th><th>Amount</th></tr></thead><tbody>
+          {quickRows.map(r=>(
+            <tr key={r.key}>
+              <td style={{display:"flex",alignItems:"center",gap:8}}><Icon path={ICONS.bag} size={16}/> {r.label}</td>
+              <td>{r.qty.toLocaleString("en-IN")} <span className="field-note">{r.unit}</span></td>
+              {QUALITY_TIERS.map((tier,idx)=>(
+                <td key={tier} style={{textAlign:"center"}}>
+                  <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,fontSize:11,fontWeight:600}}>
+                    <input type="radio" name={`quality-${r.key}`} checked={(project.resourceQuality[r.key]||"medium")===tier} onChange={()=>setResourceQuality(r.key,tier)} style={{width:"auto"}}/>
+                    {r.qualityLabels[idx]}
+                  </label>
+                </td>
+              ))}
+              <td className="amount">{money(r.amount,project.currency)}</td>
+            </tr>
+          ))}
+        </tbody><tfoot><tr><td colSpan={5} className="boq-total-label">Total Estimated Cost</td><td className="amount">{money(quickTotal,project.currency)}</td></tr></tfoot></table></div>
+
+        <div className="pie-wrap" style={{marginTop:20}}>
+          <div className="pie-chart" style={{background:quickPieGradient}}/>
+          <div className="pie-legend">
+            {quickPhaseSlices.map(s=><div key={s.label} className="pie-legend-item"><span className="pie-dot" style={{background:s.color}}/>{s.label} — {money(s.value,project.currency)} ({s.pct.toFixed(1)}%)</div>)}
+          </div>
+        </div>
+
+        <h3 style={{display:"flex",alignItems:"center",gap:8,margin:"24px 0 12px",fontSize:15}}><Icon path={ICONS.clock} size={16}/> Timeline Tracking: Cost Per Phase — approx. {quickTotalDays} days total</h3>
+        <div className="gantt">
+          {quickTimeline.map(p=>(
+            <div key={p.label} className="gantt-row">
+              <div className="gantt-label">{p.label}</div>
+              <div className="gantt-track">
+                <div className="gantt-bar" style={{marginLeft:`${(p.dayStart/quickTotalDays)*100}%`, width:`${(p.days/quickTotalDays)*100}%`, background:p.color}}/>
+              </div>
+              <div className="gantt-meta">{p.days} Days | {money(p.cost,project.currency)}</div>
+            </div>
+          ))}
+        </div>
+
+        <p className="field-note" style={{marginTop:10}}>Disclaimer: these are approximate rates, phase-wise splits and durations. Actual cost/time varies by city and contractor — confirm local rates before finalizing.</p>
+        <div className="actions" style={{marginTop:14}}>
+          <button onClick={()=>window.print()}>{t("action_print")}</button>
+          <button onClick={shareEstimate}>{shared?"Copied!":"Share Final Estimate"}</button>
+        </div>
       </div>
 
       <div className="card summary"><h2><Icon path={ICONS.summary}/> {t("summary_heading")}</h2><div className="summary-main">{money(grandTotal,project.currency)}</div><p>{t("summary_total")}</p>
