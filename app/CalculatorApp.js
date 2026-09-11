@@ -270,6 +270,7 @@ const RESOURCE_CATALOG = [
   { key:"contractor", label:"Contractor (RCC, Brickwork, Plaster work)", unit:"Per Sq feet", factor:1.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:140, medium:190, premium:260} },
 ];
 const QUALITY_TIERS = ["basic","medium","premium"];
+const RESOURCE_COLOR_PALETTE = ["#F97316","#1E3A5F","#dc2626","#16a34a","#eab308","#7c3aed","#3b82f6","#f472b6","#06b6d4","#84cc16","#a855f7","#0ea5e9","#f43f5e"];
 
 // ---- Phase-wise cost split (approximate industry-standard %, for the donut chart) + rough duration in days (for the timeline chart) ----
 const PHASE_WEIGHTS = [
@@ -302,7 +303,7 @@ export default function Calculator() {
     masonCost:0, helperLabourCost:0, carpenterCost:0, electricalCost:0, plumbingCost:0,
     includeTransport:false, transport:0,
     commercialMode:false,
-    quickCity:"", resourceQuality:{},
+    quickCity:"", resourceQuality:{}, phaseDays:{},
   });
   const [materials, setMaterials] = useState([
     { name:"Cement", brand:"", size:"", unit:"Bag", qty:0, rate:500 },
@@ -453,24 +454,36 @@ export default function Calculator() {
   const quickSubtotal = quickRows.reduce((s,r)=>s+r.amount,0);
   const quickLocationMultiplier = STATE_MULTIPLIERS[project.state] ?? 1;
   const quickTotal = quickSubtotal * quickLocationMultiplier;
-  const quickPhaseSlices = useMemo(()=>{
+
+  // ---- Pie chart: real cost share per resource — moves with every input above, not a fixed split ----
+  const quickPieSlices = useMemo(()=>{
+    const base = quickSubtotal || 1;
     let acc = 0;
-    return PHASE_WEIGHTS.map(p=>{
-      const slice = { ...p, value: quickTotal*p.pct/100, start:acc };
-      acc += p.pct;
+    return quickRows.filter(r=>r.amount>0).map((r,i)=>{
+      const pct = (r.amount/base)*100;
+      const slice = { label:r.label, value:r.amount*quickLocationMultiplier, color:RESOURCE_COLOR_PALETTE[i%RESOURCE_COLOR_PALETTE.length], pct, start:acc };
+      acc += pct;
       return slice;
     });
-  },[quickTotal]);
-  const quickPieGradient = `conic-gradient(${quickPhaseSlices.map(s=>`${s.color} ${s.start}% ${s.start+s.pct}%`).join(",")})`;
+  },[quickRows, quickSubtotal, quickLocationMultiplier]);
+  const quickPieGradient = quickPieSlices.length
+    ? `conic-gradient(${quickPieSlices.map(s=>`${s.color} ${s.start}% ${s.start+s.pct}%`).join(",")})`
+    : "#e3e8f0";
+
+  // ---- Timeline: standard days by default, editable per phase; cost per phase still scales with the live total ----
+  const setPhaseDays = (label, value) => setProject(p=>({...p, phaseDays:{...(p.phaseDays||{}), [label]:value}}));
   const quickTimeline = useMemo(()=>{
     let dayAcc = 0;
     return PHASE_WEIGHTS.map(p=>{
-      const row = { ...p, cost: quickTotal*p.pct/100, dayStart:dayAcc };
-      dayAcc += p.days;
+      const override = (project.phaseDays||{})[p.label];
+      const days = (override!==undefined && override!=="") ? Math.max(0, Number(override)||0) : p.days;
+      const row = { ...p, days, cost: quickTotal*p.pct/100, dayStart:dayAcc };
+      dayAcc += days;
       return row;
     });
-  },[quickTotal]);
-  const quickTotalDays = PHASE_WEIGHTS.reduce((s,p)=>s+p.days,0);
+  },[quickTotal, project.phaseDays]);
+  const quickTotalDays = quickTimeline.reduce((s,p)=>s+p.days,0);
+
 
   const [shared,setShared]=useState(false);
   const shareEstimate = async () => {
@@ -666,19 +679,23 @@ export default function Calculator() {
         <div className="pie-wrap" style={{marginTop:20}}>
           <div className="pie-chart" style={{background:quickPieGradient}}/>
           <div className="pie-legend">
-            {quickPhaseSlices.map(s=><div key={s.label} className="pie-legend-item"><span className="pie-dot" style={{background:s.color}}/>{s.label} — {money(s.value,project.currency)} ({s.pct.toFixed(1)}%)</div>)}
+            {quickPieSlices.map(s=><div key={s.label} className="pie-legend-item"><span className="pie-dot" style={{background:s.color}}/>{s.label} — {money(s.value,project.currency)} ({s.pct.toFixed(1)}%)</div>)}
           </div>
         </div>
 
         <h3 style={{display:"flex",alignItems:"center",gap:8,margin:"24px 0 12px",fontSize:15}}><Icon path={ICONS.clock} size={16}/> Timeline Tracking: Cost Per Phase — approx. {quickTotalDays} days total</h3>
+        <p className="field-note" style={{marginTop:-6,marginBottom:10}}>Standard durations shown by default — click a day number to type your own.</p>
         <div className="gantt">
           {quickTimeline.map(p=>(
             <div key={p.label} className="gantt-row">
               <div className="gantt-label">{p.label}</div>
               <div className="gantt-track">
-                <div className="gantt-bar" style={{marginLeft:`${(p.dayStart/quickTotalDays)*100}%`, width:`${(p.days/quickTotalDays)*100}%`, background:p.color}}/>
+                <div className="gantt-bar" style={{marginLeft:`${quickTotalDays?(p.dayStart/quickTotalDays)*100:0}%`, width:`${quickTotalDays?(p.days/quickTotalDays)*100:0}%`, background:p.color}}/>
               </div>
-              <div className="gantt-meta">{p.days} Days | {money(p.cost,project.currency)}</div>
+              <div className="gantt-meta">
+                <input type="number" min="0" value={p.days} onChange={e=>setPhaseDays(p.label,e.target.value)} style={{width:52,display:"inline-block",padding:"2px 6px",marginRight:4,fontSize:12}}/>
+                Days | {money(p.cost,project.currency)}
+              </div>
             </div>
           ))}
         </div>
