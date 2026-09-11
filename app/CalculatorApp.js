@@ -181,25 +181,42 @@ const STATE_MULTIPLIERS = {
   "Tamil Nadu":1.08, "Telangana":1.05, "Tripura":0.92, "Uttar Pradesh":0.9, "Uttarakhand":1.0,
   "West Bengal":0.95, "Other / Union Territory":1.0,
 };
-// ---- A handful of representative cities per state (not exhaustive — "Other" always lets typing a custom city) ----
+// ---- Representative cities/districts per state (not exhaustive — "Other" always lets typing a custom city) ----
 const STATE_CITIES = {
+  "Andhra Pradesh":["Visakhapatnam","Vijayawada","Guntur","Nellore","Kurnool","Tirupati","Kadapa","Anantapur"],
+  "Arunachal Pradesh":["Itanagar","Tawang","Ziro","Pasighat","Naharlagun","Bomdila"],
+  "Assam":["Guwahati","Dibrugarh","Silchar","Jorhat","Tezpur","Nagaon"],
+  "Bihar":["Patna","Gaya","Bhagalpur","Muzaffarpur","Darbhanga","Purnia"],
+  "Chandigarh":["Chandigarh"],
+  "Chhattisgarh":["Raipur","Bhilai","Bilaspur","Korba","Durg","Raigarh"],
   "Delhi NCR":["New Delhi","Gurgaon","Noida","Faridabad","Ghaziabad"],
-  "Maharashtra":["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
-  "Karnataka":["Bangalore","Mysore","Mangalore","Hubli","Belgaum"],
-  "Tamil Nadu":["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem"],
-  "West Bengal":["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
-  "Telangana":["Hyderabad","Warangal","Nizamabad","Karimnagar"],
-  "Gujarat":["Ahmedabad","Surat","Vadodara","Rajkot"],
-  "Uttar Pradesh":["Lucknow","Kanpur","Noida","Agra","Varanasi"],
-  "Punjab":["Ludhiana","Amritsar","Jalandhar","Patiala"],
-  "Rajasthan":["Jaipur","Jodhpur","Udaipur","Kota"],
-  "Kerala":["Thiruvananthapuram","Kochi","Kozhikode","Thrissur"],
+  "Goa":["Panaji","Margao","Vasco da Gama","Mapusa","Ponda"],
+  "Gujarat":["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar","Jamnagar"],
   "Haryana":["Gurgaon","Faridabad","Panipat","Ambala","Rohtak"],
-  "Madhya Pradesh":["Bhopal","Indore","Gwalior","Jabalpur"],
-  "Bihar":["Patna","Gaya","Bhagalpur","Muzaffarpur"],
-  "Odisha":["Bhubaneswar","Cuttack","Rourkela"],
+  "Himachal Pradesh":["Shimla","Manali","Dharamshala","Solan","Mandi","Kullu"],
+  "Jammu & Kashmir":["Srinagar","Jammu","Anantnag","Baramulla","Udhampur"],
+  "Jharkhand":["Ranchi","Jamshedpur","Dhanbad","Bokaro","Hazaribagh"],
+  "Karnataka":["Bangalore","Mysore","Mangalore","Hubli","Belgaum"],
+  "Kerala":["Thiruvananthapuram","Kochi","Kozhikode","Thrissur","Kollam","Kannur"],
+  "Madhya Pradesh":["Bhopal","Indore","Gwalior","Jabalpur","Ujjain"],
+  "Maharashtra":["Mumbai","Pune","Nagpur","Nashik","Aurangabad"],
+  "Manipur":["Imphal","Thoubal","Bishnupur","Churachandpur"],
+  "Meghalaya":["Shillong","Tura","Jowai"],
+  "Mizoram":["Aizawl","Lunglei","Champhai"],
+  "Nagaland":["Kohima","Dimapur","Mokokchung"],
+  "Odisha":["Bhubaneswar","Cuttack","Rourkela","Sambalpur","Berhampur"],
+  "Punjab":["Ludhiana","Amritsar","Jalandhar","Patiala"],
+  "Rajasthan":["Jaipur","Jodhpur","Udaipur","Kota","Ajmer","Bikaner"],
+  "Sikkim":["Gangtok","Namchi","Gyalshing"],
+  "Tamil Nadu":["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem"],
+  "Telangana":["Hyderabad","Warangal","Nizamabad","Karimnagar"],
+  "Tripura":["Agartala","Udaipur","Dharmanagar"],
+  "Uttar Pradesh":["Lucknow","Kanpur","Noida","Agra","Varanasi"],
+  "Uttarakhand":["Dehradun","Haridwar","Nainital","Rishikesh","Haldwani"],
+  "West Bengal":["Kolkata","Howrah","Durgapur","Siliguri","Asansol"],
 };
 const CITY_OTHER = "Other (type manually)";
+
 
 // ---- Ready-made BOQ starter templates (approximate quantities — meant to be edited after loading) ----
 const BOQ_TEMPLATES = {
