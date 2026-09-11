@@ -116,3 +116,12 @@ footer{border-top:1px solid #e7ebf2;padding:34px 0;background:#fff}
   .download-buttons{position:sticky;bottom:0;background:#fff;padding-top:8px}
   button{min-height:44px}
 }
+.table-wrap td label{white-space:nowrap}
+@media(max-width:800px){.table-wrap table{min-width:900px}}
+.gantt{display:flex;flex-direction:column;gap:8px}
+.gantt-row{display:grid;grid-template-columns:180px 1fr 160px;align-items:center;gap:10px;font-size:12px}
+.gantt-label{color:#4e5d73;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gantt-track{position:relative;background:#f1f4f9;border-radius:6px;height:18px;overflow:hidden}
+.gantt-bar{position:absolute;top:0;bottom:0;border-radius:6px;min-width:4px}
+.gantt-meta{white-space:nowrap;color:#59677b;font-weight:700}
+@media(max-width:800px){.gantt-row{grid-template-columns:110px 1fr;grid-template-areas:"label label" "track meta"}.gantt-label{grid-area:label}.gantt-track{grid-area:track}.gantt-meta{grid-area:meta;text-align:right}}
