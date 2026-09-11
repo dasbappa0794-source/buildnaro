@@ -18,7 +18,29 @@ const MATERIAL_SUGGESTIONS = [
   "Binding Wire (GI Wire)","Nails (Perek)","Shuttering Pins",
 ];
 
-// Material name -> default unit suggestion (auto-fills, still user-editable)
+// Material name -> national-average base rate (₹ per its default unit). Multiplied by the state
+// factor below to suggest a location-adjusted rate — a heuristic, not a live market feed.
+const BASE_MATERIAL_RATES = {
+  "Cement":500, "TMT Steel Bars":68, "Sand":65, "Stone Aggregate / Chips":55, "Bricks":9, "AAC Blocks":55,
+  "Ready Mix Concrete":6500, "Vitrified Tiles":65, "Ceramic Tiles":45, "Marble":150, "Granite":180,
+  "Plywood":90, "MDF Board":70, "Laminate Sheet":40, "Veneer":120, "Interior Paint":280, "Exterior Paint":320,
+  "Primer":180, "Wall Putty":25, "PVC Pipe":45, "CPVC Pipe":60, "Electrical Wire":1200,
+  "MCB / Switchgear":120, "Modular Switches":60, "Wood / Timber":1800, "Flush Door":3500, "Door Frame":2500,
+  "UPVC Window":420, "Aluminium Window":380, "Glass":90, "Door & Window Hardware":800,
+  "Waterproofing Chemical":220, "Bitumen / Tar":45, "Gypsum Board":45, "POP (Plaster of Paris)":400,
+  "Tile Adhesive":350, "Tile Grout":60, "False Ceiling Grid":85, "Modular Kitchen":1800, "Wardrobe":1200,
+  "Sanitaryware (WC/Basin)":3500, "CP Fittings (Taps/Mixers)":1500, "Water Storage Tank":6000, "Roofing Sheet":320,
+  "MS Fencing":180, "Interlocking Pavers":55, "Curtains":900, "Wallpaper":2500, "Light Fixtures":600,
+  "Split AC":32000, "Furniture":8000, "Binding Wire (GI Wire)":75, "Nails (Perek)":80, "Shuttering Pins":8,
+};
+const suggestedRate = (materialName, state) => {
+  const base = BASE_MATERIAL_RATES[materialName];
+  if (!base) return null;
+  const mult = STATE_MULTIPLIERS[state] ?? 1;
+  return Math.round(base * mult);
+};
+
+
 const MATERIAL_UNIT_MAP = {
   "Cement":"Bag","TMT Steel Bars":"Kg","Sand":"CFT","Stone Aggregate / Chips":"CFT","Bricks":"Nos","AAC Blocks":"Nos",
   "Ready Mix Concrete":"Cubic Meter (m³)","Vitrified Tiles":"Sq ft","Ceramic Tiles":"Sq ft","Marble":"Sq ft","Granite":"Sq ft",
@@ -426,7 +448,15 @@ export default function Calculator() {
     setMaterials(list=>list.map((m,idx)=>{
       if(idx!==i) return m;
       const unit = MATERIAL_UNIT_MAP[value] || m.unit;
-      return {...m,name:value,unit,size:""};
+      const auto = suggestedRate(value, project.state);
+      const rate = (!m.rate && auto!=null) ? auto : m.rate;
+      return {...m,name:value,unit,size:"",rate};
+    }));
+  };
+  const updateAllRatesForState = () => {
+    setMaterials(list=>list.map(m=>{
+      const auto = suggestedRate(m.name, project.state);
+      return auto!=null ? {...m, rate:auto} : m;
     }));
   };
   const updateMaterial=(i,key,value)=>setMaterials(list=>list.map((m,idx)=>idx===i?{...m,[key]:value}:m));
@@ -730,7 +760,8 @@ export default function Calculator() {
         {locationMultiplier!==1 && <div className="mini">Location adjustment: {money(locationAdjustment,project.currency)}</div>}
       </div>
 
-      <div className="card"><div className="section-head"><div><h2><Icon path={ICONS.materials}/> {t("boq_heading")}</h2><p>{t("material_name_ph")}</p></div><button onClick={addMaterial}>{t("boq_add")}</button></div>
+      <div className="card"><div className="section-head"><div><h2><Icon path={ICONS.materials}/> {t("boq_heading")}</h2><p>{t("material_name_ph")}</p></div><div style={{display:"flex",gap:8}}><button type="button" onClick={updateAllRatesForState}>Update rates for {project.state==="Not selected"?"India (avg)":project.state}</button><button onClick={addMaterial}>{t("boq_add")}</button></div></div>
+        <p className="field-note" style={{marginTop:-8,marginBottom:12}}>Picking a known material auto-fills a {project.state==="Not selected"?"national-average":project.state+"-adjusted"} rate — you can always type your own local price over it.</p>
         <div className="toggle-row" style={{marginBottom:12}}><input type="checkbox" checked={project.commercialMode} onChange={e=>updateProject("commercialMode",e.target.checked)}/> <b>Commercial mode</b> <span className="field-note" style={{marginLeft:6}}>adds Supplier, GST%, Discount% &amp; Remarks columns</span></div>
         <div className="table-wrap"><table><thead><tr><th>{t("th_material")}</th><th>{t("th_brand")}</th><th>{t("th_spec")}</th><th>{t("th_unit")}</th><th>{t("th_qty")}</th><th>{t("th_rate")}</th>{project.commercialMode&&<><th>Supplier</th><th>GST%</th><th>Disc%</th></>}<th>{t("th_amount")}</th>{project.commercialMode&&<th>Remarks</th>}<th></th></tr></thead><tbody>
         {materials.map((m,i)=>{
