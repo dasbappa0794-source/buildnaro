@@ -761,7 +761,7 @@ export default function Calculator() {
       </div>
 
       <div className="card"><div className="section-head"><div><h2><Icon path={ICONS.materials}/> {t("boq_heading")}</h2><p>{t("material_name_ph")}</p></div><div style={{display:"flex",gap:8}}><button type="button" onClick={updateAllRatesForState}>Update rates for {project.state==="Not selected"?"India (avg)":project.state}</button><button onClick={addMaterial}>{t("boq_add")}</button></div></div>
-        <p className="field-note" style={{marginTop:-8,marginBottom:12}}>Picking a known material auto-fills a {project.state==="Not selected"?"national-average":project.state+"-adjusted"} rate — you can always type your own local price over it.</p>
+        <p className="field-note" style={{marginTop:4,marginBottom:12}}>Picking a known material auto-fills a {project.state==="Not selected"?"national-average":project.state+"-adjusted"} rate — you can always type your own local price over it.</p>
         <div className="toggle-row" style={{marginBottom:12}}><input type="checkbox" checked={project.commercialMode} onChange={e=>updateProject("commercialMode",e.target.checked)}/> <b>Commercial mode</b> <span className="field-note" style={{marginLeft:6}}>adds Supplier, GST%, Discount% &amp; Remarks columns</span></div>
         <div className="table-wrap"><table><thead><tr><th>{t("th_material")}</th><th>{t("th_brand")}</th><th>{t("th_spec")}</th><th>{t("th_unit")}</th><th>{t("th_qty")}</th><th>{t("th_rate")}</th>{project.commercialMode&&<><th>Supplier</th><th>GST%</th><th>Disc%</th></>}<th>{t("th_amount")}</th>{project.commercialMode&&<th>Remarks</th>}<th></th></tr></thead><tbody>
         {materials.map((m,i)=>{
