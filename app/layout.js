@@ -3,8 +3,10 @@ import "./style.css";
 import { LanguageProvider } from "./i18n/LanguageContext";
 
 export const metadata = {
-  title: "BuildNaro - House Construction Cost Calculator",
-  description: "Estimate your house construction cost in 30 seconds.",
+  title: "Construction Cost Calculator India | BuildNaro",
+  description: "Free construction cost calculator for India. Estimate material, labour, transport and total building cost by area, floors and construction type — Basic, Standard or Premium.",
+  keywords: "construction cost calculator india, building cost estimator, construction cost per sq ft, material rate guide, BOQ calculator",
+  viewport: "width=device-width, initial-scale=1",
 };
 
 export default function RootLayout({ children }) {
