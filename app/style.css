@@ -125,3 +125,12 @@ footer{border-top:1px solid #e7ebf2;padding:34px 0;background:#fff}
 .gantt-bar{position:absolute;top:0;bottom:0;border-radius:6px;min-width:4px}
 .gantt-meta{white-space:nowrap;color:#59677b;font-weight:700}
 @media(max-width:800px){.gantt-row{grid-template-columns:110px 1fr;grid-template-areas:"label label" "track meta"}.gantt-label{grid-area:label}.gantt-track{grid-area:track}.gantt-meta{grid-area:meta;text-align:right}}
+
+/* ===== FAQ section ===== */
+.faqList{max-width:760px;margin:0 auto;display:flex;flex-direction:column;gap:10px}
+.faqList details{background:#fff;border:1px solid #e6eaf1;border-radius:12px;padding:16px 18px}
+.faqList summary{cursor:pointer;font-weight:700;color:#1E3A5F;list-style:none;display:flex;justify-content:space-between;align-items:center}
+.faqList summary::-webkit-details-marker{display:none}
+.faqList summary::after{content:"+";font-size:20px;color:#F97316;margin-left:12px}
+.faqList details[open] summary::after{content:"−"}
+.faqList p{margin-top:10px;color:#5a6579;font-size:14px;line-height:1.6}
