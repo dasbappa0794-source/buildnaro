@@ -637,7 +637,19 @@ export default function Calculator() {
     XLSX.writeFile(wb, `${(project.name||"estimate").replace(/\s+/g,"-")}.xlsx`);
   };
 
+  const toolSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "BuildNaro Construction Cost Calculator",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Any (Web)",
+    url: "https://buildnaro.vercel.app/construction-estimate-calculator",
+    description: "Free construction cost calculator for India — estimate by built-up area, detailed BOQ materials, labour, transport and state.",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
+  };
+
   return <main>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(toolSchema) }} />
     <Script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s,html2canvas:true}))}/>
     <Script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s,jspdf:true}))}/>
     <Script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s,xlsx:true}))}/>
