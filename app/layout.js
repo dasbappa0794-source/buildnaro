@@ -15,6 +15,9 @@ export const metadata = {
   applicationName: "BuildNaro",
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
+  verification: {
+    google: "REPLACE_WITH_YOUR_GOOGLE_SEARCH_CONSOLE_CODE",
+  },
   openGraph: {
     type: "website",
     siteName: "BuildNaro",
