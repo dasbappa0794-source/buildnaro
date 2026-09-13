@@ -16,7 +16,7 @@ export const metadata = {
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
   verification: {
-    google: "REPLACE_WITH_YOUR_GOOGLE_SEARCH_CONSOLE_CODE",
+    google: "<meta name="google-site-verification" content="4fIU3ImfngTZFkD7qE2dn4ke_kN92LFf17EDah-UMOE" />",
   },
   openGraph: {
     type: "website",
