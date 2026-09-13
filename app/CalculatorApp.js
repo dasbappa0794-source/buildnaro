@@ -235,7 +235,7 @@ const STATE_CITIES = {
   "Tripura":["Agartala","Udaipur","Dharmanagar","Kailashahar","Belonia"],
   "Uttar Pradesh":["Lucknow","Kanpur","Noida","Agra","Varanasi","Prayagraj","Meerut","Ghaziabad","Bareilly","Aligarh","Moradabad","Gorakhpur","Jhansi","Saharanpur"],
   "Uttarakhand":["Dehradun","Haridwar","Nainital","Rishikesh","Haldwani","Roorkee","Rudrapur","Almora","Pithoragarh"],
-  "West Bengal":["Kolkata","Howrah","Durgapur","Siliguri","Asansol","Kharagpur","Malda","Bardhaman","Jalpaiguri","Cooch Behar","Darjeeling","Medinipur"],
+  "West Bengal":["Kolkata","Howrah","Hooghly","North 24 Parganas","South 24 Parganas","Nadia","Murshidabad","Malda","Uttar Dinajpur","Dakshin Dinajpur","Darjeeling","Kalimpong","Jalpaiguri","Alipurduar","Cooch Behar","Purba Bardhaman","Paschim Bardhaman","Birbhum","Purulia","Bankura","Paschim Medinipur","Purba Medinipur","Jhargram"],
 };
 const CITY_OTHER = "Other (type manually)";
 
