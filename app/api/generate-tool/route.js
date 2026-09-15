@@ -1,6 +1,7 @@
 // Backend route: turns a plain-language request into a small structured calculator
-// (fields + a formula), using OpenAI. The OPENAI_API_KEY only ever lives on the server
-// (set it in Vercel → Settings → Environment Variables) — it is never sent to the browser.
+// (fields + a formula), using Google's Gemini API. The GEMINI_API_KEY only ever lives
+// on the server (set it in Vercel → Settings → Environment Variables) — it is never
+// sent to the browser. Model: gemini-3.1-flash-lite (free tier, generous daily quota).
 
 const RATE_LIMIT_MAX = 8;
 const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -57,42 +58,42 @@ export async function POST(req) {
       return Response.json({ error: "prompt_too_long" }, { status: 400 });
     }
 
-    const apiKey = process.env.OPENAI_API_KEY;
+    const apiKey = process.env.GEMINI_API_KEY;
     if (!apiKey) {
       return Response.json(
-        { error: "not_configured", message: "OPENAI_API_KEY is not set on the server yet." },
+        { error: "not_configured", message: "GEMINI_API_KEY is not set on the server yet." },
         { status: 500 }
       );
     }
 
-    const openaiRes = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${apiKey}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-4o-mini",
-        response_format: { type: "json_object" },
-        temperature: 0.3,
-        max_tokens: 500,
-        messages: [
-          { role: "system", content: SYSTEM_PROMPT },
-          { role: "user", content: prompt.trim() },
-        ],
-      }),
-    });
+    const GEMINI_MODEL = "gemini-3.1-flash-lite";
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_MODEL}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          systemInstruction: { parts: [{ text: SYSTEM_PROMPT }] },
+          contents: [{ role: "user", parts: [{ text: prompt.trim() }] }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 500,
+            responseMimeType: "application/json",
+          },
+        }),
+      }
+    );
 
-    if (!openaiRes.ok) {
-      const errText = await openaiRes.text().catch(() => "");
+    if (!geminiRes.ok) {
+      const errText = await geminiRes.text().catch(() => "");
       return Response.json(
-        { error: "upstream_error", message: `OpenAI request failed: ${openaiRes.status}`, detail: errText.slice(0, 300) },
+        { error: "upstream_error", message: `Gemini request failed: ${geminiRes.status}`, detail: errText.slice(0, 300) },
         { status: 502 }
       );
     }
 
-    const data = await openaiRes.json();
-    const raw = data?.choices?.[0]?.message?.content;
+    const data = await geminiRes.json();
+    const raw = data?.candidates?.[0]?.content?.parts?.[0]?.text;
     if (!raw) {
       return Response.json({ error: "empty_response" }, { status: 502 });
     }
