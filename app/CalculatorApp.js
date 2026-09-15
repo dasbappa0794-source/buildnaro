@@ -956,7 +956,7 @@ export default function Calculator() {
           <ins className="adsbygoogle"
                style={{ display: "block", minHeight: 250, background: "#f4f6f9" }}
                data-ad-client="ca-pub-8305568320429251"
-               data-ad-slot="REPLACE_WITH_YOUR_AD_SLOT_ID"
+               data-ad-slot="4119610307"
                data-ad-format="auto"
                data-full-width-responsive="true"></ins>
           <button className="ad-modal-continue" disabled={adSeconds > 0} onClick={confirmDownload}>
