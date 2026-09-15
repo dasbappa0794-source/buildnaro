@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useLanguage } from "./i18n/LanguageContext";
 import LanguageSwitcher from "./components/LanguageSwitcher";
+import ToolGenerator from "./components/ToolGenerator";
 
 const CATEGORIES = [
   { icon: "🧮", titleKey: "cat1_title", descKey: "cat1_desc", href: null },
@@ -72,6 +73,12 @@ export default function Home() {
             <button type="submit">{t("hero_search_btn")}</button>
           </form>
           {notice && <p style={{ marginTop: 10, fontSize: 13, color: "#F97316", fontWeight: 700 }}>{notice}</p>}
+        </div>
+      </section>
+
+      <section className="section" style={{ paddingTop: 0 }}>
+        <div className="container">
+          <ToolGenerator />
         </div>
       </section>
 
