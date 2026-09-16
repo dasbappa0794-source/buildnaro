@@ -1,37 +1,43 @@
 import "./globals.css";
 import "./style.css";
 import { LanguageProvider } from "./i18n/LanguageContext";
+import type { Metadata, Viewport } from "next";
 
 const SITE_URL = "https://buildnaro.vercel.app";
 
-export const metadata = {
+export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "BuildNaro â€” Free Construction Cost Calculator for India",
+    default: "BuildNaro — Free Construction Cost Calculator for India",
     template: "%s | BuildNaro",
   },
-  description: "Free construction cost calculator for India. Estimate material, labour, transport and total building cost by area, floors, state and construction type â€” download as JPG, Excel or PDF.",
+  description: "Free construction cost calculator for India. Estimate material, labour, transport and total building cost by area, floors, state and construction type — download as JPG, Excel or PDF.",
   keywords: ["construction cost calculator india","building cost estimator","construction cost per sq ft","material rate guide","BOQ calculator","house construction cost","home building estimate calculator"],
   applicationName: "BuildNaro",
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
-  verification: { google: "4fIU3ImfngTZFkD7qE2dn4ke_kN92LFf17EDah-UMOE" },
+  verification: { 
+    google: "4fIU3ImfngTZFkD7qE2dn4ke_kN92LFf17EDah-UMOE" 
+  },
   openGraph: {
     type: "website",
     siteName: "BuildNaro",
-    title: "BuildNaro â€” Free Construction Cost Calculator for India",
-    description: "Estimate house construction cost by area, BOQ materials, labour, transport and state â€” download as JPG, Excel or PDF. Free, no sign-up.",
+    title: "BuildNaro — Free Construction Cost Calculator for India",
+    description: "Estimate house construction cost by area, BOQ materials, labour, transport and state — download as JPG, Excel or PDF. Free, no sign-up.",
     url: SITE_URL,
     locale: "en_IN",
   },
   twitter: {
     card: "summary_large_image",
-    title: "BuildNaro â€” Free Construction Cost Calculator for India",
-    description: "Estimate house construction cost by area, BOQ materials, labour, transport and state â€” free, no sign-up.",
+    title: "BuildNaro — Free Construction Cost Calculator for India",
+    description: "Estimate house construction cost by area, BOQ materials, labour, transport and state — free, no sign-up.",
   },
 };
 
-export const viewport = { width: "device-width", initialScale: 1 };
+export const viewport: Viewport = { 
+  width: "device-width", 
+  initialScale: 1 
+};
 
 const ORG_SCHEMA = {
   "@context": "https://schema.org",
@@ -41,7 +47,7 @@ const ORG_SCHEMA = {
   description: "Free construction and interior cost calculators for India.",
 };
 
-export default function RootLayout({ children }) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
       <head>
