@@ -1,13 +1,11 @@
 // Backend: plain language -> calculator JSON using Gemini
 // GEMINI_API_KEY only on server - never exposed to browser
 
-import { NextRequest } from "next/server";
-
 const RATE_LIMIT_MAX = 8;
 const RATE_LIMIT_WINDOW_MS = 24 * 60 * 60 * 1000;
-const hits = new Map<string, number[]>();
+const hits = new Map();
 
-function isRateLimited(ip: string): boolean {
+function isRateLimited(ip) {
   const now = Date.now();
   const timestamps = (hits.get(ip) || []).filter((t) => now - t < RATE_LIMIT_WINDOW_MS);
   timestamps.push(now);
@@ -41,7 +39,7 @@ Rules:
 - If the request could plausibly enable harm (weapons, drugs, hacking, or anything unsafe), respond with exactly: {"error": "unsafe_request"}
 - Keep it practical and simple — favour the most common real-world interpretation of the request.`;
 
-export async function POST(req: NextRequest) {
+export async function POST(req) {
   try {
     const ip =
       req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ||
@@ -57,7 +55,7 @@ export async function POST(req: NextRequest) {
 
     const { prompt } = await req.json();
 
-    if (!prompt || typeof prompt!== "string" ||!prompt.trim()) {
+    if (!prompt || typeof prompt !== "string" || !prompt.trim()) {
       return Response.json({ error: "empty_prompt" }, { status: 400 });
     }
     if (prompt.length > 500) {
@@ -105,7 +103,7 @@ export async function POST(req: NextRequest) {
       return Response.json({ error: "empty_response" }, { status: 502 });
     }
 
-    let parsed: any;
+    let parsed;
     try {
       parsed = JSON.parse(raw);
     } catch {
@@ -118,11 +116,11 @@ export async function POST(req: NextRequest) {
 
     // Validation
     if (
-     !parsed.title ||
-     !Array.isArray(parsed.fields) ||
+      !parsed.title ||
+      !Array.isArray(parsed.fields) ||
       parsed.fields.length === 0 ||
       parsed.fields.length > 6 ||
-      typeof parsed.formula!== "string"
+      typeof parsed.formula !== "string"
     ) {
       return Response.json({ error: "invalid_shape" }, { status: 502 });
     }
@@ -134,7 +132,7 @@ export async function POST(req: NextRequest) {
 
     return Response.json({ tool: parsed });
 
-  } catch (err: any) {
+  } catch (err) {
     return Response.json({ error: "server_error", message: String(err?.message || err) }, { status: 500 });
   }
 }
