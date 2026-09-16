@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useLanguage } from "./i18n/LanguageContext";
 import LanguageSwitcher from "./components/LanguageSwitcher";
-import ToolGenerator from "./components/ToolGenerator";
 import AiToolGenerator from "../components/AiToolGenerator";
 
 const CATEGORIES = [
@@ -79,7 +78,7 @@ export default function Home() {
 
       <section className="section" style={{ paddingTop: 0 }}>
         <div className="container">
-          <ToolGenerator />
+          <AiToolGenerator />
         </div>
       </section>
 
