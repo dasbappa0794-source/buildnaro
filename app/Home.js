@@ -1,7 +1,6 @@
 'use client';
 
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useLanguage } from "./i18n/LanguageContext";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import ToolGenerator from "./components/ToolGenerator";
@@ -26,7 +25,6 @@ const TOOLS = [
 
 export default function Home() {
   const { t } = useLanguage();
-  const router = useRouter();
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
 
@@ -34,13 +32,11 @@ export default function Home() {
     e.preventDefault();
     const q = query.trim().toLowerCase();
     if (!q) return;
-    
-    if (/constr|build|house|home|material|boq|cost|নির্মাণ|বাড়ি/.test(q)) {
-      router.push("/construction-estimate-calculator");
+    if (/constr|build|house|home|material|boq|cost/.test(q)) {
+      window.location.href = "/construction-estimate-calculator";
       return;
     }
-    
-    setNotice("That tool is coming soon — try 'construction' for now.");
+    setNotice("That tool is coming soon — try “construction” for now.");
     setTimeout(() => setNotice(""), 3000);
   };
 
@@ -70,11 +66,9 @@ export default function Home() {
           <form className="search" onSubmit={runSearch}>
             <span>🔍</span>
             <input
-              type="search"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder={t("hero_search_placeholder")}
-              aria-label="Search tools"
             />
             <button type="submit">{t("hero_search_btn")}</button>
           </form>
@@ -185,6 +179,18 @@ export default function Home() {
           </details>
         </div>
       </section>
+
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify({
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        mainEntity: [
+          { "@type": "Question", name: "How is construction cost calculated in India?", acceptedAnswer: { "@type": "Answer", text: "Construction cost is usually estimated either by multiplying built-up area by a per sq ft rate, or by adding up a detailed Bill of Quantities (BOQ) for materials, plus labour and transport. BuildNaro lets you use either method — or both together." } },
+          { "@type": "Question", name: "What is the average construction cost per sq ft in India?", acceptedAnswer: { "@type": "Answer", text: "It varies by city, material quality and labour rates — typically around ₹1,500 to ₹2,500+ per sq ft for a standard residential build." } },
+          { "@type": "Question", name: "Does this work for my city — Mumbai, Delhi, Bangalore, Kolkata, Chennai, Pune, Hyderabad?", acceptedAnswer: { "@type": "Answer", text: "Yes — BuildNaro covers every Indian state along with major cities and districts, with location-adjusted rate suggestions." } },
+          { "@type": "Question", name: "Is BuildNaro free to use?", acceptedAnswer: { "@type": "Answer", text: "Yes, completely free with no sign-up required." } },
+          { "@type": "Question", name: "Can I download my estimate?", acceptedAnswer: { "@type": "Answer", text: "Yes — download your final estimate as a JPG image, an Excel spreadsheet, or a PDF formatted for A4." } },
+        ],
+      }) }} />
 
       <footer>
         <div className="container footer">
