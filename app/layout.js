@@ -1,11 +1,10 @@
 import "./globals.css";
 import "./style.css";
 import { LanguageProvider } from "./i18n/LanguageContext";
-import type { Metadata, Viewport } from "next";
 
 const SITE_URL = "https://buildnaro.vercel.app";
 
-export const metadata: Metadata = {
+export const metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
     default: "BuildNaro — Free Construction Cost Calculator for India",
@@ -34,7 +33,7 @@ export const metadata: Metadata = {
   },
 };
 
-export const viewport: Viewport = { 
+export const viewport = { 
   width: "device-width", 
   initialScale: 1 
 };
@@ -47,7 +46,7 @@ const ORG_SCHEMA = {
   description: "Free construction and interior cost calculators for India.",
 };
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <head>
