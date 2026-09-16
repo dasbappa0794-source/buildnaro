@@ -6,20 +6,7 @@ import { useLanguage } from "./i18n/LanguageContext";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import ToolGenerator from "./components/ToolGenerator";
 
-type Category = {
-  icon: string;
-  titleKey: string;
-  descKey: string;
-  href: string | null;
-};
-
-type Tool = {
-  icon: string;
-  nameKey: string;
-  href: string | null;
-};
-
-const CATEGORIES: Category[] = [
+const CATEGORIES = [
   { icon: "🧮", titleKey: "cat1_title", descKey: "cat1_desc", href: null },
   { icon: "🏗️", titleKey: "cat2_title", descKey: "cat2_desc", href: "/construction-estimate-calculator" },
   { icon: "📄", titleKey: "cat3_title", descKey: "cat3_desc", href: null },
@@ -28,7 +15,7 @@ const CATEGORIES: Category[] = [
   { icon: "🛠️", titleKey: "cat6_title", descKey: "cat6_desc", href: null },
 ];
 
-const TOOLS: Tool[] = [
+const TOOLS = [
   { icon: "🏗️", nameKey: "tool1", href: "/construction-estimate-calculator" },
   { icon: "💰", nameKey: "tool2", href: null },
   { icon: "🖼️", nameKey: "tool3", href: null },
@@ -43,7 +30,7 @@ export default function Home() {
   const [query, setQuery] = useState("");
   const [notice, setNotice] = useState("");
 
-  const runSearch = (e: React.FormEvent) => {
+  const runSearch = (e) => {
     e.preventDefault();
     const q = query.trim().toLowerCase();
     if (!q) return;
