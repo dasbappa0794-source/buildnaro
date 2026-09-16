@@ -3,30 +3,47 @@
 import { useState } from "react";
 import { evaluate } from "mathjs";
 
-const ERROR_MESSAGES = {
-  not_a_calculator: "That's not something a simple calculator can answer â€” try describing a tool that turns a few numbers into a result (e.g. \"how many tiles do I need for a 200 sq ft floor\").",
+type ToolField = {
+  id: string;
+  label: string;
+  unit?: string;
+  defaultValue?: number;
+};
+
+type GeneratedTool = {
+  title: string;
+  description?: string;
+  fields: ToolField[];
+  formula: string;
+  resultLabel?: string;
+  resultUnit?: string;
+};
+
+const ERROR_MESSAGES: Record<string, string> = {
+  not_a_calculator: "That's not something a simple calculator can answer — try describing a tool that turns a few numbers into a result (e.g. \"how many tiles do I need for a 200 sq ft floor\").",
   unsafe_request: "Sorry, I can't generate a tool for that.",
   rate_limited: "You've reached today's limit for generating new tools on this connection. Please try again tomorrow.",
   empty_prompt: "Please describe the tool you need first.",
-  prompt_too_long: "That description is a bit too long â€” please shorten it.",
-  not_configured: "Tool generation isn't set up yet â€” please check back soon.",
+  prompt_too_long: "That description is a bit too long — please shorten it.",
+  not_configured: "Tool generation isn't set up yet — please check back soon.",
 };
 
 export default function ToolGenerator() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  const [tool, setTool] = useState(null);
-  const [values, setValues] = useState({});
-  const [result, setResult] = useState(null);
+  const [tool, setTool] = useState<GeneratedTool | null>(null);
+  const [values, setValues] = useState<Record<string, number | string>>({});
+  const [result, setResult] = useState<number | null>(null);
 
-  const generate = async (e) => {
+  const generate = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!prompt.trim() || loading) return;
     setLoading(true);
     setError("");
     setTool(null);
     setResult(null);
+
     try {
       const res = await fetch("/api/generate-tool", {
         method: "POST",
@@ -34,32 +51,41 @@ export default function ToolGenerator() {
         body: JSON.stringify({ prompt: prompt.trim() }),
       });
       const data = await res.json();
+
       if (!res.ok || data.error) {
-        setError(ERROR_MESSAGES[data.error] || "Something went wrong generating that tool â€” please try again.");
+        setError(ERROR_MESSAGES[data.error] || "Something went wrong generating that tool — please try again.");
         return;
       }
+
       setTool(data.tool);
-      const initialValues = {};
-      data.tool.fields.forEach((f) => { initialValues[f.id] = f.defaultValue ?? 0; });
+      const initialValues: Record<string, number> = {};
+      data.tool.fields.forEach((f: ToolField) => {
+        initialValues[f.id] = f.defaultValue?? 0;
+      });
       setValues(initialValues);
+
     } catch (err) {
-      setError("Couldn't reach the tool generator â€” please check your connection and try again.");
+      setError("Couldn't reach the tool generator — please check your connection and try again.");
     } finally {
       setLoading(false);
     }
   };
 
-  const updateValue = (id, v) => setValues((prev) => ({ ...prev, [id]: v }));
+  const updateValue = (id: string, v: string) => {
+    setValues((prev) => ({...prev, [id]: v }));
+  };
 
   const calculate = () => {
     if (!tool) return;
     try {
-      const scope = {};
-      tool.fields.forEach((f) => { scope[f.id] = Number(values[f.id]) || 0; });
+      const scope: Record<string, number> = {};
+      tool.fields.forEach((f) => {
+        scope[f.id] = Number(values[f.id]) || 0;
+      });
       const r = evaluate(tool.formula, scope);
       setResult(r);
     } catch (err) {
-      setError("Couldn't calculate that â€” the generated formula may be invalid. Try rephrasing your request.");
+      setError("Couldn't calculate that — the generated formula may be invalid. Try rephrasing your request.");
     }
   };
 
@@ -72,9 +98,9 @@ export default function ToolGenerator() {
 
   return (
     <section className="card" id="tool-generator">
-      <h2>ðŸª„ Describe the tool you need</h2>
+      <h2>🪄 Describe the tool you need</h2>
       <p style={{ color: "#718096", fontSize: 13, marginBottom: 16 }}>
-        Type what you need in any language â€” a small calculator will be generated for you instantly. Free, no sign-up.
+        Type what you need in any language — a small calculator will be generated for you instantly. Free, no sign-up.
       </p>
 
       {!tool && (
@@ -87,8 +113,8 @@ export default function ToolGenerator() {
             onChange={(e) => setPrompt(e.target.value)}
             disabled={loading}
           />
-          <button type="submit" disabled={loading || !prompt.trim()}>
-            {loading ? "Generatingâ€¦" : "Generate Tool"}
+          <button type="submit" disabled={loading ||!prompt.trim()}>
+            {loading? "Generating…" : "Generate Tool"}
           </button>
         </form>
       )}
@@ -105,10 +131,10 @@ export default function ToolGenerator() {
           <div className="form-grid">
             {tool.fields.map((f) => (
               <label key={f.id}>
-                {f.label}{f.unit ? ` (${f.unit})` : ""}
+                {f.label}{f.unit? ` (${f.unit})` : ""}
                 <input
                   type="number"
-                  value={values[f.id] ?? 0}
+                  value={values[f.id]?? 0}
                   onChange={(e) => updateValue(f.id, e.target.value)}
                 />
               </label>
@@ -120,11 +146,11 @@ export default function ToolGenerator() {
             <button type="button" onClick={reset} style={{ background: "#172033" }}>Generate another tool</button>
           </div>
 
-          {result !== null && !Number.isNaN(result) && (
+          {result!== null &&!Number.isNaN(result) && (
             <div style={{ marginTop: 16, padding: "14px 18px", background: "#f6f8fc", borderRadius: 12 }}>
               <span style={{ fontSize: 13, color: "#718096" }}>{tool.resultLabel || "Result"}</span>
               <div style={{ fontSize: 28, fontWeight: 900, color: "#172033" }}>
-                {result}{tool.resultUnit ? ` ${tool.resultUnit}` : ""}
+                {result}{tool.resultUnit? ` ${tool.resultUnit}` : ""}
               </div>
             </div>
           )}
