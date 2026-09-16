@@ -15,9 +15,7 @@ export const metadata = {
   applicationName: "BuildNaro",
   robots: { index: true, follow: true },
   alternates: { canonical: "/" },
-  verification: { 
-    google: "4fIU3ImfngTZFkD7qE2dn4ke_kN92LFf17EDah-UMOE" 
-  },
+  verification: { google: "4fIU3ImfngTZFkD7qE2dn4ke_kN92LFf17EDah-UMOE" },
   openGraph: {
     type: "website",
     siteName: "BuildNaro",
@@ -33,10 +31,7 @@ export const metadata = {
   },
 };
 
-export const viewport = { 
-  width: "device-width", 
-  initialScale: 1 
-};
+export const viewport = { width: "device-width", initialScale: 1 };
 
 const ORG_SCHEMA = {
   "@context": "https://schema.org",
