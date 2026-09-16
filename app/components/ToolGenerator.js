@@ -27,7 +27,6 @@ export default function ToolGenerator() {
     setError("");
     setTool(null);
     setResult(null);
-
     try {
       const res = await fetch("/api/generate-tool", {
         method: "POST",
@@ -35,19 +34,14 @@ export default function ToolGenerator() {
         body: JSON.stringify({ prompt: prompt.trim() }),
       });
       const data = await res.json();
-
       if (!res.ok || data.error) {
         setError(ERROR_MESSAGES[data.error] || "Something went wrong generating that tool — please try again.");
         return;
       }
-
       setTool(data.tool);
       const initialValues = {};
-      data.tool.fields.forEach((f) => {
-        initialValues[f.id] = f.defaultValue ?? 0;
-      });
+      data.tool.fields.forEach((f) => { initialValues[f.id] = f.defaultValue?? 0; });
       setValues(initialValues);
-
     } catch (err) {
       setError("Couldn't reach the tool generator — please check your connection and try again.");
     } finally {
@@ -55,17 +49,13 @@ export default function ToolGenerator() {
     }
   };
 
-  const updateValue = (id, v) => {
-    setValues((prev) => ({ ...prev, [id]: v }));
-  };
+  const updateValue = (id, v) => setValues((prev) => ({...prev, [id]: v }));
 
   const calculate = () => {
     if (!tool) return;
     try {
       const scope = {};
-      tool.fields.forEach((f) => {
-        scope[f.id] = Number(values[f.id]) || 0;
-      });
+      tool.fields.forEach((f) => { scope[f.id] = Number(values[f.id]) || 0; });
       const r = evaluate(tool.formula, scope);
       setResult(r);
     } catch (err) {
@@ -97,8 +87,8 @@ export default function ToolGenerator() {
             onChange={(e) => setPrompt(e.target.value)}
             disabled={loading}
           />
-          <button type="submit" disabled={loading || !prompt.trim()}>
-            {loading ? "Generating…" : "Generate Tool"}
+          <button type="submit" disabled={loading ||!prompt.trim()}>
+            {loading? "Generating…" : "Generate Tool"}
           </button>
         </form>
       )}
@@ -115,10 +105,10 @@ export default function ToolGenerator() {
           <div className="form-grid">
             {tool.fields.map((f) => (
               <label key={f.id}>
-                {f.label}{f.unit ? ` (${f.unit})` : ""}
+                {f.label}{f.unit? ` (${f.unit})` : ""}
                 <input
                   type="number"
-                  value={values[f.id] ?? 0}
+                  value={values[f.id]?? 0}
                   onChange={(e) => updateValue(f.id, e.target.value)}
                 />
               </label>
@@ -130,11 +120,11 @@ export default function ToolGenerator() {
             <button type="button" onClick={reset} style={{ background: "#172033" }}>Generate another tool</button>
           </div>
 
-          {result !== null && !Number.isNaN(result) && (
+          {result!== null &&!Number.isNaN(result) && (
             <div style={{ marginTop: 16, padding: "14px 18px", background: "#f6f8fc", borderRadius: 12 }}>
               <span style={{ fontSize: 13, color: "#718096" }}>{tool.resultLabel || "Result"}</span>
               <div style={{ fontSize: 28, fontWeight: 900, color: "#172033" }}>
-                {result}{tool.resultUnit ? ` ${tool.resultUnit}` : ""}
+                {result}{tool.resultUnit? ` ${tool.resultUnit}` : ""}
               </div>
             </div>
           )}
