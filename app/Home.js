@@ -4,6 +4,7 @@ import { useState } from "react";
 import { useLanguage } from "./i18n/LanguageContext";
 import LanguageSwitcher from "./components/LanguageSwitcher";
 import ToolGenerator from "./components/ToolGenerator";
+import AiToolGenerator from "../components/AiToolGenerator";
 
 const CATEGORIES = [
   { icon: "🧮", titleKey: "cat1_title", descKey: "cat1_desc", href: null },
