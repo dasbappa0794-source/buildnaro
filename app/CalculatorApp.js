@@ -725,7 +725,7 @@ export default function Calculator() {
               {QUALITY_TIERS.map((tier,idx)=>(
                 <td key={tier} style={{textAlign:"center"}}>
                   <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,fontSize:11,fontWeight:600}}>
-                    <input type="radio" name={`quality-${r.key}`} checked={(project.resourceQuality[r.key]||defaultQuickTier)===tier} onChange={()=>setResourceQuality(r.key,tier)} style={{width:"auto"}}/>
+                    <input type="radio" name={`quality-${r.key}`} checked={(project.resourceQuality[r.key]||"medium")===tier} onChange={()=>setResourceQuality(r.key,tier)} style={{width:"auto"}}/>
                     {r.qualityLabels[idx]}
                   </label>
                 </td>
