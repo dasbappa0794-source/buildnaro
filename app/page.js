@@ -1,7 +1,21 @@
-export { default } from "./Home";
+import Home from "./Home";
+import type { Metadata } from "next";
 
-export const metadata = {
-  title: "BuildNaro â€” Construction & Interior Cost Calculators for India",
-  description: "Free, no-signup tools for construction and interior cost estimation in India. Start with our full Construction Cost Calculator by area, BOQ, labour, transport and state â€” more calculators coming soon.",
-  alternates: { canonical: "/" },
+export const metadata: Metadata = {
+  title: "BuildNaro — Construction & Interior Cost Calculators for India",
+  description: "Free, no-signup tools for construction and interior cost estimation in India. Start with our full Construction Cost Calculator by area, BOQ, labour, transport and state — more calculators coming soon.",
+  alternates: { 
+    canonical: "/" 
+  },
+  keywords: ["construction cost calculator India", "house construction cost", "BOQ calculator", "building estimate"],
+  openGraph: {
+    title: "BuildNaro — Construction Cost Calculators for India",
+    description: "Free construction cost calculator for India with state-wise rates",
+    url: "https://buildnaro.com",
+    siteName: "BuildNaro",
+  }
 };
+
+export default function Page() {
+  return <Home />;
+}
