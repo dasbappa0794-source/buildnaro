@@ -36,9 +36,10 @@ const BASE_MATERIAL_RATES = {
 const suggestedRate = (materialName, state) => {
   const base = BASE_MATERIAL_RATES[materialName];
   if (!base) return null;
-  const mult = STATE_MULTIPLIERS[state]?? 1;
+  const mult = STATE_MULTIPLIERS[state] ?? 1;
   return Math.round(base * mult);
 };
+
 
 const MATERIAL_UNIT_MAP = {
   "Cement":"Bag","TMT Steel Bars":"Kg","Sand":"CFT","Stone Aggregate / Chips":"CFT","Bricks":"Nos","AAC Blocks":"Nos",
@@ -182,9 +183,9 @@ const money = (value, currency) => new Intl.NumberFormat("en-IN", { style:"curre
 
 // ---- Construction type tiers: default rate/sqft + a material-quantity multiplier ----
 const CONSTRUCTION_TYPES = [
-  { key:"basic", label:"Basic", ratePerSqft:1500, factor:0.85 },
-  { key:"standard", label:"Standard", ratePerSqft:1800, factor:1.0 },
-  { key:"premium", label:"Premium", ratePerSqft:2400, factor:1.25 },
+  { key:"basic",    label:"Basic",    ratePerSqft:1500, factor:0.85 },
+  { key:"standard", label:"Standard", ratePerSqft:1800, factor:1.0  },
+  { key:"premium",  label:"Premium",  ratePerSqft:2400, factor:1.25 },
 ];
 
 // ---- Rough thumb-rule quantities per sq ft (standard tier, single floor) — editable estimates, not engineering figures ----
@@ -198,476 +199,727 @@ const STATE_MULTIPLIERS = {
   "Chhattisgarh":0.95, "Delhi NCR":1.2, "Goa":1.1, "Gujarat":1.0, "Haryana":1.1,
   "Himachal Pradesh":1.0, "Jammu & Kashmir":1.0, "Jharkhand":0.9, "Karnataka":1.1, "Kerala":1.05,
   "Madhya Pradesh":0.95, "Maharashtra":1.15, "Manipur":0.95, "Meghalaya":0.95, "Mizoram":0.95,
-  "Nagaland":0.95, "Odisha":0.95, "Puducherry":1.0, "Punjab":1.05, "Rajasthan":0.95,
-  "Sikkim":0.95, "Tamil Nadu":1.05, "Telangana":1.05, "Tripura":0.95, "Uttar Pradesh":0.95,
-  "Uttarakhand":1.0, "West Bengal":1.0,
+  "Nagaland":0.95, "Odisha":0.92, "Punjab":1.05, "Rajasthan":0.95, "Sikkim":1.0,
+  "Tamil Nadu":1.08, "Telangana":1.05, "Tripura":0.92, "Uttar Pradesh":0.9, "Uttarakhand":1.0,
+  "West Bengal":0.95, "Other / Union Territory":1.0,
+};
+// ---- Representative cities/districts per state (not exhaustive — "Other" always lets typing a custom city) ----
+const STATE_CITIES = {
+  "Andhra Pradesh":["Visakhapatnam","Vijayawada","Guntur","Nellore","Kurnool","Kadapa","Anantapur","Chittoor","Kakinada","Rajahmundry","Tirupati","Srikakulam","Vizianagaram","Eluru","Ongole"],
+  "Arunachal Pradesh":["Itanagar","Tawang","Ziro","Pasighat","Naharlagun","Bomdila","Along","Changlang","Tezu","Roing"],
+  "Assam":["Guwahati","Dibrugarh","Silchar","Jorhat","Tezpur","Nagaon","Tinsukia","Bongaigaon","Dhubri","Karimganj","Golaghat","Sivasagar"],
+  "Bihar":["Patna","Gaya","Bhagalpur","Muzaffarpur","Darbhanga","Purnia","Begusarai","Chapra","Katihar","Munger","Arrah","Bihar Sharif","Nalanda"],
+  "Chandigarh":["Chandigarh"],
+  "Chhattisgarh":["Raipur","Bhilai","Bilaspur","Korba","Durg","Raigarh","Jagdalpur","Rajnandgaon","Ambikapur","Dhamtari"],
+  "Delhi NCR":["New Delhi","Gurgaon","Noida","Faridabad","Ghaziabad","Greater Noida","Sonipat"],
+  "Goa":["Panaji","Margao","Vasco da Gama","Mapusa","Ponda","Bicholim","Curchorem"],
+  "Gujarat":["Ahmedabad","Surat","Vadodara","Rajkot","Bhavnagar","Jamnagar","Junagadh","Gandhinagar","Anand","Nadiad","Mehsana","Bharuch"],
+  "Haryana":["Gurgaon","Faridabad","Panipat","Ambala","Rohtak","Hisar","Karnal","Sonipat","Yamunanagar","Panchkula","Sirsa"],
+  "Himachal Pradesh":["Shimla","Manali","Dharamshala","Solan","Mandi","Kullu","Una","Bilaspur","Hamirpur","Chamba"],
+  "Jammu & Kashmir":["Srinagar","Jammu","Anantnag","Baramulla","Udhampur","Kathua","Pulwama","Kupwara","Rajouri","Poonch"],
+  "Jharkhand":["Ranchi","Jamshedpur","Dhanbad","Bokaro","Hazaribagh","Deoghar","Giridih","Ramgarh","Dumka"],
+  "Karnataka":["Bangalore","Mysore","Mangalore","Hubli","Belgaum","Davangere","Bellary","Gulbarga","Shimoga","Tumkur","Bijapur","Udupi"],
+  "Kerala":["Thiruvananthapuram","Kochi","Kozhikode","Thrissur","Kollam","Kannur","Alappuzha","Kottayam","Palakkad","Malappuram","Idukki","Wayanad"],
+  "Madhya Pradesh":["Bhopal","Indore","Gwalior","Jabalpur","Ujjain","Sagar","Ratlam","Rewa","Satna","Dewas","Dhar"],
+  "Maharashtra":["Mumbai","Pune","Nagpur","Nashik","Aurangabad","Thane","Solapur","Kolhapur","Amravati","Nanded","Sangli","Akola"],
+  "Manipur":["Imphal","Thoubal","Bishnupur","Churachandpur","Senapati","Ukhrul"],
+  "Meghalaya":["Shillong","Tura","Jowai","Nongstoin","Baghmara"],
+  "Mizoram":["Aizawl","Lunglei","Champhai","Kolasib","Serchhip"],
+  "Nagaland":["Kohima","Dimapur","Mokokchung","Tuensang","Wokha","Zunheboto"],
+  "Odisha":["Bhubaneswar","Cuttack","Rourkela","Sambalpur","Berhampur","Puri","Balasore","Baripada","Angul","Jharsuguda"],
+  "Punjab":["Ludhiana","Amritsar","Jalandhar","Patiala","Bathinda","Mohali","Hoshiarpur","Moga","Pathankot","Firozpur"],
+  "Rajasthan":["Jaipur","Jodhpur","Udaipur","Kota","Ajmer","Bikaner","Bharatpur","Alwar","Sikar","Bhilwara","Sri Ganganagar"],
+  "Sikkim":["Gangtok","Namchi","Gyalshing","Mangan"],
+  "Tamil Nadu":["Chennai","Coimbatore","Madurai","Tiruchirappalli","Salem","Tirunelveli","Erode","Vellore","Thoothukudi","Thanjavur","Dindigul"],
+  "Telangana":["Hyderabad","Warangal","Nizamabad","Karimnagar","Khammam","Mahbubnagar","Nalgonda","Adilabad","Siddipet"],
+  "Tripura":["Agartala","Udaipur","Dharmanagar","Kailashahar","Belonia"],
+  "Uttar Pradesh":["Lucknow","Kanpur","Noida","Agra","Varanasi","Prayagraj","Meerut","Ghaziabad","Bareilly","Aligarh","Moradabad","Gorakhpur","Jhansi","Saharanpur"],
+  "Uttarakhand":["Dehradun","Haridwar","Nainital","Rishikesh","Haldwani","Roorkee","Rudrapur","Almora","Pithoragarh"],
+  "West Bengal":["Kolkata","Howrah","Hooghly","North 24 Parganas","South 24 Parganas","Nadia","Murshidabad","Malda","Uttar Dinajpur","Dakshin Dinajpur","Darjeeling","Kalimpong","Jalpaiguri","Alipurduar","Cooch Behar","Purba Bardhaman","Paschim Bardhaman","Birbhum","Purulia","Bankura","Paschim Medinipur","Purba Medinipur","Jhargram"],
+};
+const CITY_OTHER = "Other (type manually)";
+
+
+// ---- Ready-made BOQ starter templates (approximate quantities — meant to be edited after loading) ----
+const BOQ_TEMPLATES = {
+  "Residential House (~1000 sq ft)": [
+    { name:"Cement", unit:"Bag", qty:400, rate:500 },
+    { name:"TMT Steel Bars", unit:"Kg", qty:4000, rate:68 },
+    { name:"Sand", unit:"CFT", qty:1200, rate:65 },
+    { name:"Bricks", unit:"Nos", qty:8000, rate:9 },
+    { name:"Vitrified Tiles", unit:"Sq ft", qty:1000, rate:65 },
+  ],
+  "Apartment Unit (~900 sq ft)": [
+    { name:"Cement", unit:"Bag", qty:340, rate:500 },
+    { name:"TMT Steel Bars", unit:"Kg", qty:3400, rate:68 },
+    { name:"Vitrified Tiles", unit:"Sq ft", qty:900, rate:65 },
+    { name:"Interior Paint", unit:"Litre", qty:60, rate:280 },
+  ],
+  "Commercial Building (~2000 sq ft)": [
+    { name:"Cement", unit:"Bag", qty:900, rate:500 },
+    { name:"TMT Steel Bars", unit:"Kg", qty:10000, rate:68 },
+    { name:"Ready Mix Concrete", unit:"Cubic Meter (m³)", qty:120, rate:6500 },
+    { name:"Glass", unit:"Sq ft", qty:400, rate:180 },
+  ],
+  "Road Construction (~500 m)": [
+    { name:"Stone Aggregate / Chips", unit:"CFT", qty:5000, rate:55 },
+    { name:"Bitumen / Tar", unit:"Kg", qty:8000, rate:45 },
+    { name:"Sand", unit:"CFT", qty:2000, rate:65 },
+  ],
+  "Boundary Wall (~200 running ft)": [
+    { name:"Bricks", unit:"Nos", qty:12000, rate:9 },
+    { name:"Cement", unit:"Bag", qty:150, rate:500 },
+    { name:"Sand", unit:"CFT", qty:400, rate:65 },
+  ],
 };
 
-const CURRENCIES = ["INR","USD","EUR","GBP"];
-const LS_KEY = "buildnaro_v2";
-const LS_PROJECTS_KEY = "buildnaro_projects_v2";
-
-// ---- Icons ----
+// ---- Minimal inline icon set (no external icon library needed) ----
+const Icon = ({ path, size=18 }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{verticalAlign:"middle"}}>
+    <path d={path}/>
+  </svg>
+);
 const ICONS = {
-  proj:'M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z',
-  settings:'M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.5.5 0 0 0.12-.61l-1.92-3.32a.5.5 0 0 0-.6-.22l-2.39.96a7.007 7.007 0 0 0-1.62-.94L14.4 2.81a.5.5 0 0 0-.5-.31h-3.8a.5.5 0 0 0-.5.31l-.38 2.54a7.007 7.007 0 0 0-1.62.94l-2.39-.96a.5.5 0 0 0-.6.22L2.69 8.87a.5.5 0 0 0.12.61l2.03 1.58c-.05.3-.07.61-.07.94s.02.64.07.94L2.81 14.52a.5.5 0 0 0-.12.61l1.92 3.32c.12.21.37.31.6.22l2.39-.96c.5.38 1.04.7 1.62.94l.38 2.54c.04.24.41.5.41h3.8c.26 0.46-.17.5-.41l.38-2.54a7.007 7.007 0 0 0 1.62-.94l2.39.96c.22.09.48-.01.6-.22l1.92-3.32a.5.5 0 0 0-.12-.61l-2.03-1.58zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z',
-  area:'M3 3h18v18H3z M7 7h10v10H7z',
-  mat:'M4 6h16v2H4z M4 11h16v2H4z M4 16h16v2H4z',
-  report:'M14 2H6c-1.1 0-2.9-2 2v16c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V8l-6-6z M14 2v6h6 M10 12H8v4h2v-4z M14 12h-2v6h2v-6z M18 12h-2v3h2v-3z',
-  save:'M17 3H5c-1.1 0-2.9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V7l-4-4z M12 19c-1.66 0-3-1.34-3-3s1.34-3 3-3 3 1.34 3 3-1.34 3-3 3z M15 3v4H8',
+  project:"M3 21h18M5 21V7l7-4 7 4v14M9 9h1m4 0h1m-6 4h1m4 0h1m-6 4h1m4 0h1",
+  materials:"M21 8l-9-5-9 5 9 5 9-5zM3 8v8l9 5 9-5V8M3 8l9 5m0 0l9-5",
+  labour:"M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14c-5 0-8 2.5-8 5v1h16v-1c0-2.5-3-5-8-5z",
+  transport:"M3 13l1-5a2 2 0 012-2h5l3 3h4a1 1 0 011 1v3M3 13v4a1 1 0 001 1h1m14-5v4a1 1 0 01-1 1h-1M7 18a2 2 0 100-4 2 2 0 000 4zm10 0a2 2 0 100-4 2 2 0 000 4z",
+  summary:"M4 19V5a1 1 0 011-1h9l5 5v10a1 1 0 01-1 1H5a1 1 0 01-1-1zM13 4v5h5M8 13h8M8 17h5",
+  report:"M9 17v-6M13 17V7m4 10v-3M4 19h16",
+  save:"M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2zM17 21v-8H7v8M7 3v5h8",
+  share:"M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14",
+  clock:"M12 22a10 10 0 100-20 10 10 0 000 20zM12 6v6l4 2",
+  bag:"M6 8V6a6 6 0 1112 0v2M4 8h16l-1.5 13a1 1 0 01-1 1H6.5a1 1 0 01-1-1L4 8z",
 };
-const Icon = ({ path, size=18[STRIPPED 47 bytes]"0 0 24 24" fill="currentColor"><path d={path}/></svg>;
 
-function safeParse(json, fallback) { try { return JSON.parse(json); } catch { return fallback; } }
+// ---- UltraTech-style "Quick Estimate": fixed resource list, quantity auto from area, 3-tier quality ----
+const RESOURCE_CATALOG = [
+  { key:"cement", label:"Cement", unit:"Bag", factor:0.45, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:300, medium:343, premium:400} },
+  { key:"steel", label:"Steel", unit:"Kg", factor:3.5, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:40, medium:46, premium:54} },
+  { key:"bricks", label:"Bricks", unit:"Per Piece", factor:19, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:6, medium:7, premium:9} },
+  { key:"aggregate", label:"Aggregate", unit:"Per Cubic feet", factor:1.9, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:28, medium:33, premium:40} },
+  { key:"sand", label:"Sand", unit:"Per Cubic feet", factor:2.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:30, medium:36, premium:44} },
+  { key:"flooring", label:"Flooring", unit:"Per Sq feet", factor:1.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:65, medium:98, premium:160} },
+  { key:"windows", label:"Windows", unit:"Per Sq feet", factor:0.17, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:150, medium:206, premium:300} },
+  { key:"doors", label:"Doors", unit:"Per Sq feet", factor:0.18, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:180, medium:267, premium:400} },
+  { key:"electrical", label:"Electrical fittings", unit:"Per Sq feet", factor:0.15, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:55, medium:78, premium:110} },
+  { key:"painting", label:"Painting", unit:"Per Sq feet", factor:6.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:15, medium:22, premium:32} },
+  { key:"sanitary", label:"Sanitary Fittings", unit:"Per Sq feet", factor:1.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:40, medium:60, premium:90} },
+  { key:"kitchen", label:"Kitchen Work", unit:"Per Sq feet", factor:0.055, qualityLabels:["Platform and Sink","Semi Modular","Fully Modular"], rates:{basic:400, medium:818, premium:1500} },
+  { key:"contractor", label:"Contractor (RCC, Brickwork, Plaster work)", unit:"Per Sq feet", factor:1.0, qualityLabels:["Basic Grade","Medium Grade","Premium Grade"], rates:{basic:140, medium:190, premium:260} },
+];
+const QUALITY_TIERS = ["basic","medium","premium"];
+const RESOURCE_COLOR_PALETTE = ["#F97316","#1E3A5F","#dc2626","#16a34a","#eab308","#7c3aed","#3b82f6","#f472b6","#06b6d4","#84cc16","#a855f7","#0ea5e9","#f43f5e"];
+
+// ---- Phase-wise cost split (approximate industry-standard %, for the donut chart) + rough duration in days (for the timeline chart) ----
+const PHASE_WEIGHTS = [
+  { label:"Home Design & Approval", pct:7.9, days:46, color:"#facc15" },
+  { label:"Excavation", pct:3.9, days:14, color:"#16a34a" },
+  { label:"Footing & Foundation", pct:28.8, days:41, color:"#111827" },
+  { label:"RCC Work – Columns & Slabs", pct:19.3, days:17, color:"#2563eb" },
+  { label:"Roof Slab", pct:16.1, days:37, color:"#dc2626" },
+  { label:"Brickwork & Plastering", pct:3.1, days:8, color:"#f472b6" },
+  { label:"Flooring & Tiling", pct:13.9, days:25, color:"#7c3aed" },
+  { label:"Electric Wiring", pct:3.9, days:14, color:"#f97316" },
+  { label:"Water Supply & Plumbing", pct:2.4, days:30, color:"#6b7280" },
+  { label:"Door", pct:0.7, days:15, color:"#eab308" },
+];
+const toSqft = (area, unit) => unit==="sq m" ? (Number(area)||0)*10.7639 : unit==="sq yd" ? (Number(area)||0)*9 : (Number(area)||0);
 
 export default function Calculator() {
   const { t } = useLanguage();
-
-  const [project, setProject] = useState(() => ({
-    name: "My House",
-    constructionType: "standard",
-    floors: 1,
-    state: "Not selected",
-    currency: "INR",
-    area: 1000,
-    areaUnit: "sq ft",
-    ratePerSqft: 1800,
-    mode: "both",
-    wastagePct: 5,
-    labourPct: 12,
-    transportPct: 2,
-    useExtra: true,
-    otherCost: 0,
-    contingencyPct: 5,
-    taxPct: 5,
-    labour: { mason: { qty:0, rate:800 }, helper:{ qty:0, rate:500 }, electrician:{ qty:0, rate:700 }, plumber:{ qty:0, rate:700 }, carpenter:{ qty:0, rate:750 }, painter:{ qty:0, rate:600 }, welder:{ qty:0, rate:700 }, tileMason:{ qty:0, rate:750 } },
-  }));
-
-  const [materials, setMaterials] = useState(() => [
-    { name:"Cement", brand:"", size:"", unit:"Bag", qty:400, rate:500 },
-    { name:"TMT Steel Bars", brand:"", size:"10 mm", unit:"Kg", qty:4000, rate:68 },
-    { name:"Sand", brand:"", size:"", unit:"CFT", qty:1200, rate:65 },
-    { name:"Bricks", brand:"", size:"", unit:"Nos", qty:8000, rate:9 },
-  ]);
-
-  const [matQuery, setMatQuery] = useState("");
-  const [savedProjects, setSavedProjects] = useState([]);
-  const [saved, setSaved] = useState(false);
-  const [scriptsReady, setScriptsReady] = useState({ html2canvas:false, jspdf:false, xlsx:false });
-  const [pendingDownload, setPendingDownload] = useState(null);
-  const [adSeconds, setAdSeconds] = useState(5);
   const printRef = useRef(null);
+  const [scriptsReady, setScriptsReady] = useState({ html2canvas:false, jspdf:false, xlsx:false });
 
-  useEffect(() => {
-    const ls = localStorage.getItem(LS_KEY);
-    if (ls) {
-      const p = safeParse(ls, null);
-      if (p?.project) setProject(p.project);
-      if (p?.materials) setMaterials(p.materials);
-    }
-    const lp = localStorage.getItem(LS_PROJECTS_KEY);
-    if (lp) setSavedProjects(safeParse(lp, []));
-  }, []);
+  const [project, setProject] = useState({
+    name:"My Construction Project", currency:"INR",
+    mode:"boq", area:1000, areaUnit:"sq ft", rate:1800,
+    floors:1, constructionType:"standard",
+    state:"Not selected",
+    useAdditionalCosts:false, wastage:0, other:0, tax:0, contingency:0,
+    includeLabour:false, labourType:"contract", contractAmount:0, contractDays:"",
+    leadCount:0, helperCount:0, leadRate:0, helperRate:0, workDays:0,
+    masonCost:0, helperLabourCost:0, carpenterCost:0, electricalCost:0, plumbingCost:0,
+    includeTransport:false, transport:0,
+    commercialMode:false,
+    quickCity:"", resourceQuality:{}, phaseDays:{},
+  });
+  const [materials, setMaterials] = useState([
+    { name:"Cement", brand:"", size:"", unit:"Bag", qty:0, rate:500 },
+    { name:"Sand", brand:"", size:"", unit:"CFT", qty:0, rate:65 },
+    { name:"Bricks", brand:"", size:"", unit:"Nos", qty:0, rate:9 },
+    { name:"TMT Steel Bars", brand:"", size:"", unit:"Kg", qty:0, rate:68 },
+  ]);
+  const [saved,setSaved]=useState(false);
+  const [savedProjects,setSavedProjects]=useState([]);
+  const [selectedTemplate,setSelectedTemplate]=useState("");
 
-  useEffect(() => {
-    localStorage.setItem(LS_KEY, JSON.stringify({ project, materials }));
-  }, [project, materials]);
+  useEffect(()=>{
+    try{ const raw = localStorage.getItem("buildnaro-projects"); if(raw) setSavedProjects(JSON.parse(raw)); }catch(e){}
+  },[]);
+
+  // Tracks which BOQ rows are in "type your own unit/size" mode
+  const [customUnitRows, setCustomUnitRows] = useState({});
+  const [customSizeRows, setCustomSizeRows] = useState({});
+  const [customAreaUnit, setCustomAreaUnit] = useState(false);
+  const [customCity, setCustomCity] = useState(false);
+
+  // ---- Ad gate: show exactly one ad before any download starts ----
+  const [pendingDownload, setPendingDownload] = useState(null); // "jpg" | "excel" | "pdf" | null
+  const [adSeconds, setAdSeconds] = useState(3);
 
   useEffect(() => {
     if (!pendingDownload) return;
-    if (adSeconds <= 0) return;
-    const id = setTimeout(() => setAdSeconds(s => s - 1), 1000);
-    return () => clearTimeout(id);
-  }, [pendingDownload, adSeconds]);
-
-  useEffect(() => {
-    if (!pendingDownload) return;
-    // load ad after modal is in DOM
-    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch {}
+    setAdSeconds(3);
+    try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+    const timer = setInterval(() => {
+      setAdSeconds((s) => (s <= 1 ? 0 : s - 1));
+    }, 1000);
+    return () => clearInterval(timer);
   }, [pendingDownload]);
 
-  const filteredMaterials = useMemo(() => {
-    const q = matQuery.trim().toLowerCase();
-    if (!q) return MATERIAL_SUGGESTIONS;
-    return MATERIAL_SUGGESTIONS.filter(m => m.toLowerCase().includes(q));
-  }, [matQuery]);
-
-  const addMaterial = (name) => {
-    const n = (name || matQuery || "").trim();
-    if (!n) return;
-    const unit = MATERIAL_UNIT_MAP[n] || "Nos";
-    const rate = suggestedRate(n, project.state)?? 0;
-    setMaterials(m => [...m, { name:n, brand:"", size:"", unit, qty:1, rate }]);
-    setMatQuery("");
+  const requestDownload = (type) => setPendingDownload(type);
+  const cancelDownload = () => setPendingDownload(null);
+  const confirmDownload = () => {
+    const type = pendingDownload;
+    setPendingDownload(null);
+    if (type === "jpg") downloadJPG();
+    if (type === "excel") downloadExcel();
+    if (type === "pdf") downloadPDF();
   };
 
-  const updateMaterial = (idx, patch) => setMaterials(m => m.map((row,i) => i===idx? {...row,...patch } : row));
-  const removeMaterial = (idx) => setMaterials(m => m.filter((_,i) => i!==idx));
+  const rowAmount = (m) => {
+    const base = (Number(m.qty)||0)*(Number(m.rate)||0);
+    if (!project.commercialMode) return base;
+    const afterDiscount = base * (1 - (Number(m.discount)||0)/100);
+    return afterDiscount * (1 + (Number(m.gst)||0)/100);
+  };
+  const materialSubtotal = useMemo(()=>materials.reduce((s,m)=>s+rowAmount(m),0),[materials,project.commercialMode]);
+  const areaComponent = (project.mode==="area"||project.mode==="both") ? (Number(project.area)||0)*(Number(project.rate)||0) : 0;
+  const materialComponent = (project.mode==="boq"||project.mode==="both") ? materialSubtotal : 0;
+  const combinedBase = areaComponent + materialComponent;
 
-  const updateProject = (patch) => setProject(p => ({...p,...patch }));
-  const updateLabour = (key, field, value) => setProject(p => ({...p, labour: {...p.labour, [key]: {...p.labour[key], [field]: Number(value)||0 } } }));
+  const useExtra = project.useAdditionalCosts;
+  const wastageCost = useExtra && (project.mode==="boq"||project.mode==="both") ? materialComponent*(Number(project.wastage||0)/100) : 0;
+  const subtotalAfterWastage = combinedBase + wastageCost;
 
-  const areaSqFt = useMemo(() => {
-    const a = Number(project.area)||0;
-    if (project.areaUnit==="sq ft") return a;
-    if (project.areaUnit==="sq m") return a * 10.7639;
-    if (project.areaUnit==="sq yd") return a * 9;
-    return a;
-  }, [project.area, project.areaUnit]);
+  const labourCost = useExtra && project.includeLabour ? (
+    project.labourType==="contract"
+      ? (Number(project.contractAmount)||0)
+      : project.labourType==="tradewise"
+      ? ((Number(project.masonCost)||0)+(Number(project.helperLabourCost)||0)+(Number(project.carpenterCost)||0)+(Number(project.electricalCost)||0)+(Number(project.plumbingCost)||0))
+      : ((Number(project.leadCount)||0)*(Number(project.leadRate)||0) + (Number(project.helperCount)||0)*(Number(project.helperRate)||0)) * (Number(project.workDays)||0)
+  ) : 0;
+  const transportCost = useExtra && project.includeTransport ? (Number(project.transport)||0) : 0;
+  const otherCost = useExtra ? subtotalAfterWastage*(Number(project.other||0)/100) : 0;
+  const contingency = useExtra ? subtotalAfterWastage*(Number(project.contingency||0)/100) : 0;
+  const taxable = subtotalAfterWastage+labourCost+transportCost+otherCost+contingency;
+  const tax = useExtra ? taxable*(Number(project.tax||0)/100) : 0;
+  const preLocationTotal = taxable+tax;
+  const locationMultiplier = STATE_MULTIPLIERS[project.state] ?? 1;
+  const locationAdjustment = preLocationTotal * (locationMultiplier-1);
+  const grandTotal = preLocationTotal + locationAdjustment;
 
-  const currentTier = useMemo(() => CONSTRUCTION_TYPES.find(ct => ct.key===project.constructionType) || CONSTRUCTION_TYPES[1], [project.constructionType]);
-  const locationMultiplier = STATE_MULTIPLIERS[project.state]?? 1;
-
-  const autoMaterialTotals = useMemo(() => {
-    let totalQty = {};
-    const floors = Number(project.floors)||1;
-    const tierFactor = currentTier.factor;
-    Object.entries(THUMB_RULES).forEach(([mat, perSqFt]) => {
-      totalQty[mat] = areaSqFt * perSqFt * floors * tierFactor;
-    });
-    return totalQty;
-  }, [areaSqFt, project.floors, currentTier]);
-
-  useEffect(() => {
-    // auto-fill qty if area changes and material is one of the thumb-rule ones
-    setMaterials(prev => prev.map(row => {
-      if (THUMB_RULES[row.name]!= null) {
-        const newQty = autoMaterialTotals[row.name];
-        if (newQty) return {...row, qty: Math.round(newQty) };
-      }
-      return row;
-    }));
-  }, [autoMaterialTotals]);
-
-  const materialComponent = useMemo(() => materials.reduce((s,m) => s + (Number(m.qty)||0)*(Number(m.rate)||0), 0), [materials]);
-  const areaComponent = useMemo(() => areaSqFt * (Number(project.ratePerSqft)||0) * (Number(project.floors)||1), [areaSqFt, project.ratePerSqft, project.floors]);
-
-  const baseForExtras = useMemo(() => {
-    if (project.mode==="area") return areaComponent;
-    if (project.mode==="boq") return materialComponent;
-    return areaComponent + materialComponent;
-  }, [project.mode, areaComponent, materialComponent]);
-
-  const wastageCost = baseForExtras * (Number(project.wastagePct)||0) / 100;
-  const labourCostFromPct = baseForExtras * (Number(project.labourPct)||0) / 100;
-  const labourCostFromBreakup = useMemo(() => Object.values(project.labour).reduce((s,l) => s + (Number(l.qty)||0)*(Number(l.rate)||0), 0), [project.labour]);
-  const labourCost = labourCostFromBreakup > 0? labourCostFromBreakup : labourCostFromPct;
-  const transportCost = baseForExtras * (Number(project.transportPct)||0) / 100;
-  const otherCost = Number(project.otherCost)||0;
-  const subtotalBeforeCont = baseForExtras + wastageCost + labourCost + transportCost + otherCost;
-  const contingency = subtotalBeforeCont * (Number(project.contingencyPct)||0) / 100;
-  const tax = (subtotalBeforeCont + contingency) * (Number(project.taxPct)||0) / 100;
-  const locationAdjustment = (subtotalBeforeCont + contingency + tax) * (locationMultiplier - 1);
-  const grandTotal = subtotalBeforeCont + contingency + tax + locationAdjustment;
-  const useExtra = project.useExtra;
-
-  const pieSlices = useMemo(() => {
-    const items = [];
-    if (project.mode!=="boq") items.push({ label:t("pd_mode_area"), value: areaComponent });
-    if (project.mode!=="area") items.push({ label:t("boq_subtotal"), value: materialComponent });
-    if (wastageCost>0) items.push({ label:t("bd_wastage"), value: wastageCost });
-    if (labourCost>0) items.push({ label:t("bd_labour"), value: labourCost });
-    if (transportCost>0) items.push({ label:t("bd_transport"), value: transportCost });
-    if (useExtra && otherCost>0) items.push({ label:t("bd_other"), value: otherCost });
-    if (useExtra && contingency>0) items.push({ label:t("bd_contingency"), value: contingency });
-    if (useExtra && tax>0) items.push({ label:t("bd_tax"), value: tax });
-    if (locationMultiplier!==1) items.push({ label:`Location (${project.state})`, value: locationAdjustment });
-    const total = items.reduce((s,i)=>s+i.value,0) || 1;
-    const colors = ["#1E3A5F","#F97316","#22c55e","#a855f7","#06b6d4","#f59e0b","#ef4444","#8b5cf6","#10b981","#eab308"];
+  // ---- Pie-chart breakdown (of grand total) ----
+  const pieSlices = useMemo(()=>{
+    const base = grandTotal || 1;
+    const parts = [
+      { label:"Materials", value: materialComponent+areaComponent, color:"#F97316" },
+      { label:"Labour", value: labourCost, color:"#1E3A5F" },
+      { label:"Transport", value: transportCost, color:"#3B82F6" },
+      { label:"Other charges", value: otherCost+contingency+tax+wastageCost+locationAdjustment, color:"#94A3B8" },
+    ].filter(p=>p.value>0);
     let acc = 0;
-    return items.map((it, idx) => {
-      const pct = (it.value/total)*100;
-      const slice = {...it, pct, color: colors[idx % colors.length], start: acc };
+    return parts.map(p=>{
+      const pct = (p.value/base)*100;
+      const slice = { ...p, pct, start:acc };
       acc += pct;
       return slice;
     });
-  }, [project.mode, areaComponent, materialComponent, wastageCost, labourCost, transportCost, otherCost, contingency, tax, locationAdjustment, locationMultiplier, project.state, t, useExtra]);
+  },[grandTotal, materialComponent, areaComponent, labourCost, transportCost, otherCost, contingency, tax, wastageCost, locationAdjustment]);
+  const pieGradient = pieSlices.length
+    ? `conic-gradient(${pieSlices.map(s=>`${s.color} ${s.start}% ${s.start+s.pct}%`).join(",")})`
+    : "#e3e8f0";
 
-  const pieGradient = useMemo(() => {
-    if (!pieSlices.length) return "";
-    let g = "conic-gradient(";
-    pieSlices.forEach(s => {
-      g += `${s.color} ${s.start}% ${s.start + s.pct}%,`;
-    });
-    return g.slice(0,-1) + ")";
-  }, [pieSlices]);
-
-  const ganttData = useMemo(() => {
-    const totalDays = 180;
-    const tasks = [
-      { label:"Foundation", start:0, dur:20 },
-      { label:"Structure / Columns", start:15, dur:45 },
-      { label:"Brickwork", start:40, dur:35 },
-      { label:"Plastering", start:70, dur:25 },
-      { label:"Flooring", start:95, dur:25 },
-      { label:"Electrical & Plumbing", start:90, dur:40 },
-      { label:"Painting", start:125, dur:20 },
-      { label:"Finishing", start:140, dur:35 },
-    ];
-    return { totalDays, tasks };
-  }, []);
-
-  const saveEstimate = () => {
-    const id = Date.now().toString(36);
-    const entry = { id, name: project.name, savedAt: new Date().toISOString(), project, materials, grandTotal };
-    const next = [entry,...savedProjects].slice(0,20);
-    setSavedProjects(next);
-    localStorage.setItem(LS_PROJECTS_KEY, JSON.stringify(next));
-    setSaved(true);
-    setTimeout(()=>setSaved(false),2000);
+  const updateProject=(key,value)=>setProject(p=>({...p,[key]:value}));
+  const setMaterialName=(i,value)=>{
+    setCustomUnitRows(f=>({...f,[i]:false}));
+    setCustomSizeRows(f=>({...f,[i]:false}));
+    setMaterials(list=>list.map((m,idx)=>{
+      if(idx!==i) return m;
+      const unit = MATERIAL_UNIT_MAP[value] || m.unit;
+      const auto = suggestedRate(value, project.state);
+      const rate = (!m.rate && auto!=null) ? auto : m.rate;
+      return {...m,name:value,unit,size:"",rate};
+    }));
   };
-  const loadProject = (p) => {
-    setProject(p.project);
-    setMaterials(p.materials);
-    window.scrollTo({ top:0, behavior:"smooth" });
+  const updateAllRatesForState = () => {
+    setMaterials(list=>list.map(m=>{
+      const auto = suggestedRate(m.name, project.state);
+      return auto!=null ? {...m, rate:auto} : m;
+    }));
   };
-  const deleteProject = (id) => {
-    const next = savedProjects.filter(p=>p.id!==id);
-    setSavedProjects(next);
-    localStorage.setItem(LS_PROJECTS_KEY, JSON.stringify(next));
-  };
-
-  const requestDownload = (type) => {
-    setAdSeconds(5);
-    setPendingDownload(type);
-  };
-  const cancelDownload = () => setPendingDownload(null);
-  const confirmDownload = async () => {
-    const type = pendingDownload;
-    setPendingDownload(null);
-    if (type==="jpg" || type==="pdf") await doImagePdf(type);
-    else if (type==="excel") doExcel();
-  };
-
-  const doImagePdf = async (type) => {
-    const el = printRef.current;
-    if (!el ||!window.html2canvas) return;
-    const canvas = await window.html2canvas(el, { scale:2, backgroundColor:"#ffffff" });
-    if (type==="jpg") {
-      const link = document.createElement("a");
-      link.download = `${project.name.replace(/\s+/g,"_")}_estimate.jpg`;
-      link.href = canvas.toDataURL("image/jpeg", 0.92);
-      link.click();
+  const updateMaterial=(i,key,value)=>setMaterials(list=>list.map((m,idx)=>idx===i?{...m,[key]:value}:m));
+  const addMaterial=()=>setMaterials(l=>[...l,{name:"",brand:"",size:"",unit:"Unit",qty:0,rate:0}]);
+  const removeMaterial=i=>setMaterials(l=>l.filter((_,idx)=>idx!==i));
+  const setUnitFromSelect = (i, value) => {
+    if (value === "__custom__") {
+      setCustomUnitRows(f=>({...f,[i]:true}));
+      updateMaterial(i,"unit","");
     } else {
-      const imgData = canvas.toDataURL("image/jpeg", 0.92);
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF({ orientation:"portrait", unit:"mm", format:"a4" });
-      const pageW = pdf.internal.pageSize.getWidth();
-      const pageH = pdf.internal.pageSize.getHeight();
-      const imgW = pageW;
-      const imgH = (canvas.height * imgW) / canvas.width;
-      let y = 0;
-      let remaining = imgH;
-      while (remaining > 0) {
-        pdf.addImage(imgData, "JPEG", 0, y, imgW, imgH);
-        remaining -= pageH;
-        if (remaining > 0) { pdf.addPage(); y = - (imgH - remaining); }
-        else break;
-      }
-      pdf.save(`${project.name.replace(/\s+/g,"_")}_estimate.pdf`);
+      setCustomUnitRows(f=>({...f,[i]:false}));
+      updateMaterial(i,"unit",value);
     }
   };
+  const setSizeFromSelect = (i, value) => {
+    if (value === "__custom__") {
+      setCustomSizeRows(f=>({...f,[i]:true}));
+      updateMaterial(i,"size","");
+    } else {
+      setCustomSizeRows(f=>({...f,[i]:false}));
+      updateMaterial(i,"size",value);
+    }
+  };
+  const setAreaUnitFromSelect = (value) => {
+    if (value === "__custom__") { setCustomAreaUnit(true); updateProject("areaUnit",""); }
+    else { setCustomAreaUnit(false); updateProject("areaUnit",value); }
+  };
+  const setCityFromSelect = (value) => {
+    if (value === CITY_OTHER) { setCustomCity(true); updateProject("quickCity",""); }
+    else { setCustomCity(false); updateProject("quickCity",value); }
+  };
+  // ---- Quick Estimate: reacts to Project Details (Area, Floors, Construction Type) + Estimate Settings (State) ----
+  const quickSqft = toSqft(project.area, project.areaUnit) * Math.max(1, Number(project.floors)||1);
+  const defaultQuickTier = project.constructionType==="basic" ? "basic" : project.constructionType==="premium" ? "premium" : "medium";
+  const setResourceQuality = (key, tier) => setProject(p=>({...p, resourceQuality:{...p.resourceQuality,[key]:tier}}));
+  const quickRows = useMemo(()=>RESOURCE_CATALOG.map(r=>{
+    const tier = project.resourceQuality[r.key] || defaultQuickTier;
+    const qty = Math.round(quickSqft*r.factor);
+    const rate = r.rates[tier];
+    return { ...r, tier, qty, rate, amount: qty*rate };
+  }),[quickSqft, project.resourceQuality, defaultQuickTier]);
+  const quickSubtotal = quickRows.reduce((s,r)=>s+r.amount,0);
+  const quickLocationMultiplier = STATE_MULTIPLIERS[project.state] ?? 1;
+  const quickTotal = quickSubtotal * quickLocationMultiplier;
 
-  const doExcel = () => {
+  // ---- Pie chart: real cost share per resource — moves with every input above, not a fixed split ----
+  const quickPieSlices = useMemo(()=>{
+    const base = quickSubtotal || 1;
+    let acc = 0;
+    return quickRows.filter(r=>r.amount>0).map((r,i)=>{
+      const pct = (r.amount/base)*100;
+      const slice = { label:r.label, value:r.amount*quickLocationMultiplier, color:RESOURCE_COLOR_PALETTE[i%RESOURCE_COLOR_PALETTE.length], pct, start:acc };
+      acc += pct;
+      return slice;
+    });
+  },[quickRows, quickSubtotal, quickLocationMultiplier]);
+  const quickPieGradient = quickPieSlices.length
+    ? `conic-gradient(${quickPieSlices.map(s=>`${s.color} ${s.start}% ${s.start+s.pct}%`).join(",")})`
+    : "#e3e8f0";
+
+  // ---- Timeline: standard days by default, editable per phase; cost per phase still scales with the live total ----
+  const setPhaseDays = (label, value) => setProject(p=>({...p, phaseDays:{...(p.phaseDays||{}), [label]:value}}));
+  const quickTimeline = useMemo(()=>{
+    let dayAcc = 0;
+    return PHASE_WEIGHTS.map(p=>{
+      const override = (project.phaseDays||{})[p.label];
+      const days = (override!==undefined && override!=="") ? Math.max(0, Number(override)||0) : p.days;
+      const row = { ...p, days, cost: quickTotal*p.pct/100, dayStart:dayAcc };
+      dayAcc += days;
+      return row;
+    });
+  },[quickTotal, project.phaseDays]);
+  const quickTotalDays = quickTimeline.reduce((s,p)=>s+p.days,0);
+
+
+  const [shared,setShared]=useState(false);
+  const shareEstimate = async () => {
+    const text = `${project.name} — Estimated construction cost: ${money(quickTotal||grandTotal,project.currency)} (via BuildNaro)`;
+    try {
+      if (navigator.share) { await navigator.share({ title:"BuildNaro Estimate", text }); }
+      else { await navigator.clipboard.writeText(text); setShared(true); setTimeout(()=>setShared(false),2000); }
+    } catch(e){}
+  };
+
+  const saveEstimate=()=>{
+    const entry = { id: Date.now(), name: project.name||"Untitled Project", savedAt: new Date().toISOString(), grandTotal, project, materials };
+    const next = [entry, ...savedProjects].slice(0,20);
+    setSavedProjects(next);
+    try{ localStorage.setItem("buildnaro-projects", JSON.stringify(next)); }catch(e){}
+    setSaved(true); setTimeout(()=>setSaved(false),2000);
+  };
+  const loadProject=(entry)=>{ setProject(entry.project); setMaterials(entry.materials); };
+  const deleteProject=(id)=>{
+    const next = savedProjects.filter(p=>p.id!==id);
+    setSavedProjects(next);
+    try{ localStorage.setItem("buildnaro-projects", JSON.stringify(next)); }catch(e){}
+  };
+
+  // ---- Auto-suggest key material quantities from Area + Floors + Construction Type (rough thumb-rules) ----
+  const autoFillMaterials = () => {
+    const tier = CONSTRUCTION_TYPES.find(c=>c.key===project.constructionType) || CONSTRUCTION_TYPES[1];
+    const areaSqft = project.areaUnit==="sq m" ? (Number(project.area)||0)*10.7639
+      : project.areaUnit==="sq yd" ? (Number(project.area)||0)*9
+      : (Number(project.area)||0);
+    const floors = Math.max(1, Number(project.floors)||1);
+    const totalArea = areaSqft*floors;
+    setMaterials(list=>{
+      const next = [...list];
+      Object.keys(THUMB_RULES).forEach(name=>{
+        const qty = Math.round(totalArea*THUMB_RULES[name]*tier.factor);
+        const idx = next.findIndex(m=>m.name===name);
+        if (idx>=0) next[idx] = { ...next[idx], qty };
+        else next.push({ name, brand:"", size:"", unit:AUTO_FILL_UNITS[name], qty, rate:0 });
+      });
+      return next;
+    });
+  };
+  const applyTemplate = (templateName) => {
+    setSelectedTemplate(templateName);
+    if (!templateName || !BOQ_TEMPLATES[templateName]) return;
+    setMaterials(BOQ_TEMPLATES[templateName].map(m=>({ name:m.name, brand:"", size:"", unit:m.unit, qty:m.qty, rate:m.rate })));
+  };
+
+  // ---- Downloads ----
+  const buildRows = () => {
+    const rows = [[t("th_material"), t("th_brand"), t("th_spec"), t("th_unit"), t("th_qty"), t("th_rate"), t("th_amount")]];
+    materials.forEach(m => rows.push([m.name||"-", m.brand||"-", m.size||"-", m.unit, Number(m.qty)||0, Number(m.rate)||0, rowAmount(m)]));
+    return rows;
+  };
+
+  const downloadJPG = async () => {
+    if (!window.html2canvas || !printRef.current) return;
+    const canvas = await window.html2canvas(printRef.current, { scale: 2, backgroundColor: "#ffffff" });
+    const a = document.createElement("a");
+    a.href = canvas.toDataURL("image/jpeg", 0.95);
+    a.download = `${(project.name||"estimate").replace(/\s+/g,"-")}.jpg`;
+    a.click();
+  };
+
+  const downloadPDF = async () => {
+    if (!window.html2canvas || !window.jspdf || !printRef.current) return;
+    const canvas = await window.html2canvas(printRef.current, { scale: 2, backgroundColor: "#ffffff" });
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" });
+    const pageW = 210, pageH = 297;
+    const imgW = pageW;
+    const imgH = (canvas.height * imgW) / canvas.width;
+    let heightLeft = imgH, position = 0;
+    const imgData = canvas.toDataURL("image/jpeg", 0.95);
+    pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH);
+    heightLeft -= pageH;
+    while (heightLeft > 0) {
+      position = heightLeft - imgH;
+      pdf.addPage();
+      pdf.addImage(imgData, "JPEG", 0, position, imgW, imgH);
+      heightLeft -= pageH;
+    }
+    pdf.save(`${(project.name||"estimate").replace(/\s+/g,"-")}.pdf`);
+  };
+
+  const downloadExcel = () => {
     if (!window.XLSX) return;
-    const rows = [
-      ["BuildNaro —", t("calc_title")],
-      [t("print_prepared_for"), project.name],
-      [t("print_generated_on"), new Date().toLocaleDateString()],
-      [],
-      [t("th_material"), t("th_brand"), t("th_spec"), t("th_unit"), t("th_qty"), t("th_rate"), t("th_amount")],
-     ...materials.filter(m=>m.name).map(m=>[m.name, m.brand||"-", m.size||"-", m.unit, m.qty, m.rate, (Number(m.qty)||0)*(Number(m.rate)||0)]),
-      [],
-     ...(project.mode==="area"||project.mode==="both"? [[t("pd_mode_area"), "", "", "", "", "", areaComponent]] : []),
-     ...(project.mode==="boq"||project.mode==="both"? [[t("boq_subtotal"), "", "", "", "", "", materialComponent]] : []),
-     ...(wastageCost>0? [[t("bd_wastage"), "", "", "", "", "", wastageCost]] : []),
-     ...(labourCost>0? [[t("bd_labour"), "", "", "", "", "", labourCost]] : []),
-     ...(transportCost>0? [[t("bd_transport"), "", "", "", "", "", transportCost]] : []),
-     ...(useExtra? [[t("bd_other"), "", "", "", "", "", otherCost]] : []),
-     ...(useExtra? [[t("bd_contingency"), "", "", "", "", "", contingency]] : []),
-     ...(useExtra? [[t("bd_tax"), "", "", "", "", "", tax]] : []),
-      [t("bd_grand"), "", "", "", "", "", grandTotal],
-    ];
-    const ws = window.XLSX.utils.aoa_to_sheet(rows);
-    const wb = window.XLSX.utils.book_new();
-    window.XLSX.utils.book_append_sheet(wb, ws, "Estimate");
-    window.XLSX.writeFile(wb, `${project.name.replace(/\s+/g,"_")}_estimate.xlsx`);
+    const XLSX = window.XLSX;
+    const wb = XLSX.utils.book_new();
+    const rows = buildRows();
+    rows.push([]);
+    if (project.mode==="area"||project.mode==="both") rows.push([t("pd_mode_area"), "", "", "", "", "", areaComponent]);
+    if (project.mode==="boq"||project.mode==="both") rows.push([t("boq_subtotal"), "", "", "", "", "", materialComponent]);
+    if (wastageCost) rows.push([t("bd_wastage"), "", "", "", "", "", wastageCost]);
+    if (labourCost) rows.push([t("bd_labour"), "", "", "", "", "", labourCost]);
+    if (transportCost) rows.push([t("bd_transport"), "", "", "", "", "", transportCost]);
+    if (useExtra) rows.push([t("bd_other"), "", "", "", "", "", otherCost]);
+    if (useExtra) rows.push([t("bd_contingency"), "", "", "", "", "", contingency]);
+    if (useExtra) rows.push([t("bd_tax"), "", "", "", "", "", tax]);
+    rows.push([t("bd_grand"), "", "", "", "", "", grandTotal]);
+    const ws = XLSX.utils.aoa_to_sheet(rows);
+    XLSX.utils.book_append_sheet(wb, ws, "Estimate");
+    XLSX.writeFile(wb, `${(project.name||"estimate").replace(/\s+/g,"-")}.xlsx`);
+  };
+
+  const toolSchema = {
+    "@context": "https://schema.org",
+    "@type": "WebApplication",
+    name: "BuildNaro Construction Cost Calculator",
+    applicationCategory: "BusinessApplication",
+    operatingSystem: "Any (Web)",
+    url: "https://buildnaro.vercel.app/construction-estimate-calculator",
+    description: "Free construction cost calculator for India — estimate by built-up area, detailed BOQ materials, labour, transport and state.",
+    offers: { "@type": "Offer", price: "0", priceCurrency: "INR" },
   };
 
   return <main>
-    <Script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s, html2canvas:true}))} />
-    <Script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s, jspdf:true}))} />
-    <Script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s, xlsx:true}))} />
-    <Script id="adsbygoogle-init" strategy="afterInteractive">{`(adsbygoogle = window.adsbygoogle || []).push({});`}</Script>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(toolSchema) }} />
+    <Script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s,html2canvas:true}))}/>
+    <Script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s,jspdf:true}))}/>
+    <Script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js" strategy="afterInteractive" onLoad={()=>setScriptsReady(s=>({...s,xlsx:true}))}/>
 
-    <div className="topbar">
-      <a href="/" className="brand">Build<span>Naro</span></a>
-      <a href="/">{t("nav_home")}</a>
-      <a href="/construction-estimate-calculator" style={{fontWeight:800, color:"#172033"}}>{t("calc_title")}</a>
-      <LanguageSwitcher />
-    </div>
+    <datalist id="material-suggestions">{MATERIAL_SUGGESTIONS.map(x=><option key={x} value={x}/>)}</datalist>
 
-    <div className="hero">
-      <div className="eyebrow">{t("calc_eyebrow")}</div>
-      <h1>{t("calc_title")}</h1>
-      <p>{t("calc_desc")}</p>
-    </div>
-
+    <header className="topbar"><a className="brand" href="/">Build<span>Naro</span></a><a href="/">{t("nav_home")}</a><LanguageSwitcher/></header>
+    <section className="hero"><div className="eyebrow">{t("calc_eyebrow")}</div><h1>{t("calc_title")}</h1><p>{t("calc_desc")}</p></section>
     <section className="wrap">
       <div className="grid">
-        <div>
-          <div className="card">
-            <h2><Icon path={ICONS.proj}/> {t("pd_title")}</h2>
-            <div className="form-grid">
-              <label>{t("pd_name")}<input value={project.name} onChange={e=>updateProject({ name:e.target.value })} /></label>
-              <label>{t("pd_type")}<select value={project.constructionType} onChange={e=>{
-                const ct = CONSTRUCTION_TYPES.find(c=>c.key===e.target.value);
-                updateProject({ constructionType:e.target.value, ratePerSqft: ct?.ratePerSqft || project.ratePerSqft });
-              }}>{CONSTRUCTION_TYPES.map(c=><option key={c.key} value={c.key}>{t(`type_${c.key}`)} — ₹{c.ratePerSqft}/sq ft</option>)}</select></label>
-              <label>{t("pd_floors")}<input type="number" min={1} value={project.floors} onChange={e=>updateProject({ floors:e.target.value })} /></label>
-              <label>{t("pd_state")}<select value={project.state} onChange={e=>updateProject({ state:e.target.value })}>{Object.keys(STATE_MULTIPLIERS).map(s=><option key={s} value={s}>{s}</option>)}</select><span className="field-note">{locationMultiplier!==1? `Rate factor ${locationMultiplier}x for ${project.state}` : t("state_note")}</span></label>
-              <label>{t("pd_currency")}<select value={project.currency} onChange={e=>updateProject({ currency:e.target.value })}>{CURRENCIES.map(c=><option key={c} value={c}>{c}</option>)}</select></label>
-              <label>{t("pd_mode")}<select value={project.mode} onChange={e=>updateProject({ mode:e.target.value })}><option value="area">{t("pd_mode_area")}</option><option value="boq">{t("pd_mode_boq")}</option><option value="both">{t("pd_mode_both")}</option></select></label>
-            </div>
+        <div className="card"><h2><Icon path={ICONS.project}/> {t("pd_heading")}</h2><div className="form-grid">
+          <label className="full">{t("pd_name")}<input value={project.name} onChange={e=>updateProject("name",e.target.value)}/></label>
+          <label>Floors<input type="number" min="1" value={project.floors} onChange={e=>updateProject("floors",e.target.value)}/></label>
+          <label>Construction Type
+            <select value={project.constructionType} onChange={e=>updateProject("constructionType",e.target.value)}>
+              {CONSTRUCTION_TYPES.map(c=><option key={c.key} value={c.key}>{c.label} (~₹{c.ratePerSqft}/sq ft)</option>)}
+            </select>
+          </label>
+          <label>State / Region (location pricing)
+            <select value={project.state} onChange={e=>updateProject("state",e.target.value)}>
+              {Object.keys(STATE_MULTIPLIERS).map(s=><option key={s} value={s}>{s}</option>)}
+            </select>
+          </label>
+          <label>City
+            {STATE_CITIES[project.state] ? (
+              <>
+                <select value={customCity ? CITY_OTHER : project.quickCity} onChange={e=>setCityFromSelect(e.target.value)}>
+                  <option value="">— Select City —</option>
+                  {STATE_CITIES[project.state].map(c=><option key={c} value={c}>{c}</option>)}
+                  <option value={CITY_OTHER}>{CITY_OTHER}</option>
+                </select>
+                {customCity && <input type="text" value={project.quickCity} placeholder="Type your city" onChange={e=>updateProject("quickCity",e.target.value)} style={{marginTop:6,width:"100%"}}/>}
+              </>
+            ) : (
+              <input type="text" value={project.quickCity} placeholder="Type your city" onChange={e=>updateProject("quickCity",e.target.value)}/>
+            )}
+          </label>
+          <label>BOQ Template
+            <select value={selectedTemplate} onChange={e=>applyTemplate(e.target.value)}>
+              <option value="">— Start from a template —</option>
+              {Object.keys(BOQ_TEMPLATES).map(name=><option key={name} value={name}>{name}</option>)}
+            </select>
+          </label>
+          <div className="full secondary-action"><button type="button" onClick={autoFillMaterials}>Auto-fill materials from Area + Floors</button>
+            <span className="field-note">Rough thumb-rule quantities for Cement, Steel, Sand & Bricks — edit after loading.</span>
           </div>
+        </div></div>
 
-          <div className="card">
-            <h2><Icon path={ICONS.area}/> {t("area_title")}</h2>
-            <div className="form-grid">
-              <label>{t("area_label")}<input type="number" value={project.area} onChange={e=>updateProject({ area:e.target.value })} /></label>
-              <label>{t("area_unit")}<select value={project.areaUnit} onChange={e=>updateProject({ areaUnit:e.target.value })}>{AREA_UNITS.map(u=><option key={u} value={u}>{u}</option>)}</select></label>
-              <label className="full">{t("rate_per_sqft")}<input type="number" value={project.ratePerSqft} onChange={e=>updateProject({ ratePerSqft:e.target.value })} /><span className="field-note">{t("rate_note")}</span></label>
-            </div>
-            <div className="perarea">{money(areaComponent, project.currency)} total for area mode</div>
-          </div>
+        <div className="card"><h2>{t("settings_heading")}</h2><div className="form-grid">
+          <label>{t("pd_calc_mode")}<select value={project.mode} onChange={e=>updateProject("mode",e.target.value)}><option value="area">{t("pd_mode_area")}</option><option value="boq">{t("pd_mode_boq")}</option><option value="both">{t("pd_mode_both")}</option></select></label>
+          {(project.mode==="area"||project.mode==="both")&&<>
+            <label>{t("pd_area")}<input type="number" min="0" value={project.area} onChange={e=>updateProject("area",e.target.value)}/></label>
+            <label>{t("pd_area_unit")}
+              <select value={customAreaUnit ? "__custom__" : project.areaUnit} onChange={e=>setAreaUnitFromSelect(e.target.value)}>
+                <option value="">{t("opt_none_custom")}</option>
+                {AREA_UNITS.map(u=><option key={u} value={u}>{u}</option>)}
+                <option value="__custom__">Other (type manually)</option>
+              </select>
+              {customAreaUnit && <input type="text" value={project.areaUnit} placeholder="Type unit" onChange={e=>updateProject("areaUnit",e.target.value)} style={{marginTop:6,width:"100%"}}/>}
+            </label>
+            <label>{t("pd_rate")}<input type="number" min="0" value={project.rate} onChange={e=>updateProject("rate",e.target.value)}/></label>
+          </>}
+        </div></div>
+      </div>
 
-          <div className="card">
-            <div className="section-head"><div><h2><Icon path={ICONS.mat}/> {t("mat_title")}</h2><p>{t("mat_desc")}</p></div>
-              <div className="material-tools">
-                <input className="material-search" value={matQuery} onChange={e=>setMatQuery(e.target.value)} placeholder={t("mat_search_placeholder")} list="mat-suggestions" onKeyDown={e=>{ if(e.key==="Enter"){ e.preventDefault(); addMaterial(); }}} />
-                <datalist id="mat-suggestions">{filteredMaterials.map(m=><option key={m} value={m} />)}</datalist>
-                <button type="button" onClick={()=>addMaterial()}>{t("mat_add")}</button>
-                <span>{filteredMaterials.length} suggestions</span>
-              </div>
-            </div>
+      <div className="card">
+        <div className="section-head"><div><h2><Icon path={ICONS.report}/> Quick Estimate — Cost by Resource Allocation</h2><p>Auto-calculated from Area ({project.area} {project.areaUnit}) × {project.floors} floor(s) + State. Defaults to your Construction Type ({CONSTRUCTION_TYPES.find(c=>c.key===project.constructionType)?.label}) — override any resource below.</p></div></div>
+        <div className="table-wrap"><table><thead><tr><th>Resource</th><th>Quantity</th><th colSpan={3}>Quality</th><th>Amount</th></tr></thead><tbody>
+          {quickRows.map(r=>(
+            <tr key={r.key}>
+              <td style={{display:"flex",alignItems:"center",gap:8}}><Icon path={ICONS.bag} size={16}/> {r.label}</td>
+              <td>{r.qty.toLocaleString("en-IN")} <span className="field-note">{r.unit}</span></td>
+              {QUALITY_TIERS.map((tier,idx)=>(
+                <td key={tier} style={{textAlign:"center"}}>
+                  <label style={{display:"flex",flexDirection:"column",alignItems:"center",gap:2,fontSize:11,fontWeight:600}}>
+                    <input type="radio" name={`quality-${r.key}`} checked={(project.resourceQuality[r.key]||"medium")===tier} onChange={()=>setResourceQuality(r.key,tier)} style={{width:"auto"}}/>
+                    {r.qualityLabels[idx]}
+                  </label>
+                </td>
+              ))}
+              <td className="amount">{money(r.amount,project.currency)}</td>
+            </tr>
+          ))}
+        </tbody><tfoot><tr><td colSpan={5} className="boq-total-label">Total Estimated Cost</td><td className="amount">{money(quickTotal,project.currency)}</td></tr></tfoot></table></div>
 
-            <div className="table-wrap"><table><thead><tr><th>{t("th_material")}</th><th>{t("th_brand")}</th><th>{t("th_spec")}</th><th>{t("th_unit")}</th><th>{t("th_qty")}</th><th>{t("th_rate")}</th><th>{t("th_amount")}</th><th></th></tr></thead>
-            <tbody>{materials.map((m,i)=><tr key={i}>
-              <td className="mat-row-name"><input value={m.name} onChange={e=>{
-                const newName = e.target.value;
-                const newUnit = MATERIAL_UNIT_MAP[newName] || m.unit;
-                const newRate = suggestedRate(newName, project.state)?? m.rate;
-                updateMaterial(i, { name:newName, unit:newUnit, rate:newRate });
-              }} list="mat-suggestions" /><span className="rate-source">{suggestedRate(m.name, project.state)? `Suggested ₹${suggestedRate(m.name, project.state)}` : ""}</span></td>
-              <td><input value={m.brand} onChange={e=>updateMaterial(i,{ brand:e.target.value })} placeholder="Brand" list={`brand-${i}`} /><datalist id={`brand-${i}`}>{(MATERIAL_BRAND_MAP[m.name]||GENERIC_BRANDS).map(b=><option key={b} value={b} />)}</datalist></td>
-              <td><input value={m.size} onChange={e=>updateMaterial(i,{ size:e.target.value })} placeholder="Size/spec" list={`size-${i}`} /><datalist id={`size-${i}`}>{getSizeOptions(m.name).map(s=><option key={s} value={s} />)}</datalist></td>
-              <td><select value={m.unit} onChange={e=>updateMaterial(i,{ unit:e.target.value })}>{getUnitOptions(m.name).map(u=><option key={u} value={u}>{u}</option>)}<option value="__other">{t("unit_other")}</option></select>{m.unit==="__other" && <input placeholder="Custom unit" onChange={e=>updateMaterial(i,{ unit:e.target.value })} />}</td>
-              <td><input type="number" value={m.qty} onChange={e=>updateMaterial(i,{ qty:e.target.value })} /></td>
-              <td><input type="number" value={m.rate} onChange={e=>updateMaterial(i,{ rate:e.target.value })} /></td>
-              <td className="amount">{money((Number(m.qty)||0)*(Number(m.rate)||0), project.currency)}</td>
-              <td><button type="button" className="delete" onClick={()=>removeMaterial(i)}>×</button></td>
-            </tr>)}</tbody>
-            <tfoot><tr><td colSpan={6} className="boq-total-label">{t("boq_total")}</td><td className="amount">{money(materialComponent, project.currency)}</td><td></td></tr></tfoot>
-            </table></div>
-            <p className="helper">{t("mat_helper")}</p>
-          </div>
-
-          <div className="card">
-            <h2><Icon path={ICONS.settings}/> {t("extra_title")}</h2>
-            <label className="toggle-row top-toggle"><input type="checkbox" checked={project.useExtra} onChange={e=>updateProject({ useExtra:e.target.checked })} /> {t("extra_toggle")}</label>
-            <div className="form-grid" style={{marginTop:12}}>
-              <label>{t("wastage_pct")}<input type="number" value={project.wastagePct} onChange={e=>updateProject({ wastagePct:e.target.value })} disabled={!useExtra} /></label>
-              <label>{t("labour_pct")}<input type="number" value={project.labourPct} onChange={e=>updateProject({ labourPct:e.target.value })} disabled={!useExtra} /></label>
-              <label>{t("transport_pct")}<input type="number" value={project.transportPct} onChange={e=>updateProject({ transportPct:e.target.value })} disabled={!useExtra} /></label>
-              <label>{t("other_cost")}<input type="number" value={project.otherCost} onChange={e=>updateProject({ otherCost:e.target.value })} disabled={!useExtra} /></label>
-              <label>{t("contingency_pct")}<input type="number" value={project.contingencyPct} onChange={e=>updateProject({ contingencyPct:e.target.value })} disabled={!useExtra} /></label>
-              <label>{t("tax_pct")}<input type="number" value={project.taxPct} onChange={e=>updateProject({ taxPct:e.target.value })} disabled={!useExtra} /></label>
-            </div>
-
-            <div className="labour-block">
-              <h3 style={{fontSize:14, margin:"12px 0 6px"}}>{t("labour_breakup_title")}</h3>
-              <p className="field-note" style={{marginTop:0}}>{t("labour_breakup_desc")}</p>
-              <div className="sub-grid">
-                {Object.entries(project.labour).map(([key, val])=><label key={key}>{t(`labour_${key}`) || key}<input type="number" placeholder="Qty (days)" value={val.qty} onChange={e=>updateLabour(key,"qty",e.target.value)} /><input type="number" placeholder="Rate/day" value={val.rate} onChange={e=>updateLabour(key,"rate",e.target.value)} /></label>)}
-              </div>
-            </div>
-          </div>
-
-          <div className="card">
-            <h2>📅 {t("gantt_title")}</h2>
-            <p className="field-note" style={{marginTop:-10}}>{t("gantt_desc")}</p>
-            <div className="gantt">
-              {ganttData.tasks.map((task, idx)=>{
-                const left = (task.start / ganttData.totalDays) * 100;
-                const width = (task.dur / ganttData.totalDays) * 100;
-                const colors = ["#1E3A5F","#F97316","#22c55e","#a855f7","#06b6d4","#f59e0b","#ef4444","#8b5cf6"];
-                return <div key={idx} className="gantt-row">
-                  <div className="gantt-label">{task.label}</div>
-                  <div className="gantt-track"><div className="gantt-bar" style={{ left:`${left}%`, width:`${width}%`, background: colors[idx % colors.length] }} /></div>
-                  <div className="gantt-meta">{task.start}d → {task.start + task.dur}d</div>
-                </div>;
-              })}
-            </div>
+        <div className="pie-wrap" style={{marginTop:20}}>
+          <div className="pie-chart" style={{background:quickPieGradient}}/>
+          <div className="pie-legend">
+            {quickPieSlices.map(s=><div key={s.label} className="pie-legend-item"><span className="pie-dot" style={{background:s.color}}/>{s.label} — {money(s.value,project.currency)} ({s.pct.toFixed(1)}%)</div>)}
           </div>
         </div>
 
-        <div>
-          <div className="card summary">
-            <h2><Icon path={ICONS.report}/> {t("bd_title")}</h2>
-            <div className="summary-main">{money(grandTotal, project.currency)}</div>
-            <p>{t("bd_for")} {project.name} · {areaSqFt.toFixed(0)} sq ft · {project.floors} {t("bd_floors")}</p>
-            <div style={{marginTop:12}}><span className="mini">{t(`type_${project.constructionType}`)}</span><span className="mini">{project.state}</span><span className="mini">{project.area} {project.areaUnit}</span></div>
-
-            <div className="breakdown" style={{marginTop:22}}>
-              {pieSlices.length>0 && <div className="pie-wrap">
-                <div className="pie-chart" style={{ background: pieGradient }} />
-                <div className="pie-legend">
-                  {pieSlices.map(s=><div key={s.label} className="pie-legend-item"><span className="pie-dot" style={{background:s.color}}/>{s.label} — {s.pct.toFixed(0)}%</div>)}
-                </div>
-              </div>}
-              {(project.mode==="area"||project.mode==="both")&&<div className="row"><span>{t("pd_mode_area")}</span><b>{money(areaComponent,project.currency)}</b></div>}
-              {(project.mode==="boq"||project.mode==="both")&&<div className="row"><span>{t("boq_subtotal")}</span><b>{money(materialComponent,project.currency)}</b></div>}
-              {wastageCost>0&&<div className="row"><span>{t("bd_wastage")}</span><b>{money(wastageCost,project.currency)}</b></div>}
-              {labourCost>0&&<div className="row"><span>{t("bd_labour")}</span><b>{money(labourCost,project.currency)}</b></div>}
-              {transportCost>0&&<div className="row"><span>{t("bd_transport")}</span><b>{money(transportCost,project.currency)}</b></div>}
-              {useExtra&&<div className="row"><span>{t("bd_other")}</span><b>{money(otherCost,project.currency)}</b></div>}
-              {useExtra&&<div className="row"><span>{t("bd_contingency")}</span><b>{money(contingency,project.currency)}</b></div>}
-              {useExtra&&<div className="row"><span>{t("bd_tax")}</span><b>{money(tax,project.currency)}</b></div>}
-              {locationMultiplier!==1&&<div className="row"><span>Location adjustment ({project.state})</span><b>{money(locationAdjustment,project.currency)}</b></div>}
-              <div className="row grand"><span>{t("bd_grand")}</span><b>{money(grandTotal,project.currency)}</b></div>
+        <h3 style={{display:"flex",alignItems:"center",gap:8,margin:"24px 0 12px",fontSize:15}}><Icon path={ICONS.clock} size={16}/> Timeline Tracking: Cost Per Phase — approx. {quickTotalDays} days total</h3>
+        <p className="field-note" style={{marginTop:-6,marginBottom:10}}>Standard durations shown by default — click a day number to type your own.</p>
+        <div className="gantt">
+          {quickTimeline.map(p=>(
+            <div key={p.label} className="gantt-row">
+              <div className="gantt-label">{p.label}</div>
+              <div className="gantt-track">
+                <div className="gantt-bar" style={{marginLeft:`${quickTotalDays?(p.dayStart/quickTotalDays)*100:0}%`, width:`${quickTotalDays?(p.days/quickTotalDays)*100:0}%`, background:p.color}}/>
+              </div>
+              <div className="gantt-meta">
+                <input type="number" min="0" value={p.days} onChange={e=>setPhaseDays(p.label,e.target.value)} style={{width:52,display:"inline-block",padding:"2px 6px",marginRight:4,fontSize:12}}/>
+                Days | {money(p.cost,project.currency)}
+              </div>
             </div>
-          </div>
+          ))}
+        </div>
 
-          <div className="card">
-            <div className="section-head"><div><h2><Icon path={ICONS.save}/> My Projects</h2><p>Saved estimates on this device — tap Load to bring one back</p></div></div>
-            {savedProjects.length===0? <p className="field-note">No saved projects yet. Use "Save" below to keep this estimate.</p> : (
-              <div className="table-wrap"><table><thead><tr><th>Name</th><th>Saved</th><th>Total</th><th></th></tr></thead>
-              <tbody>{savedProjects.map(p=>(
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{new Date(p.savedAt).toLocaleDateString()}</td>
-                  <td className="amount">{money(p.grandTotal,p.project.currency)}</td>
-                  <td style={{display:"flex",gap:8}}>
-                    <button type="button" onClick={()=>loadProject(p)}>Load</button>
-                    <button type="button" className="delete" onClick={()=>deleteProject(p.id)}>×</button>
-                  </td>
-                </tr>
-              ))}</tbody></table></div>
-            )}
-          </div>
-
-          <div className="card download-card">
-            <div><h2 style={{margin:"0 0 4px"}}><Icon path={ICONS.report} size={16}/> {t("download_heading")}</h2><p style={{margin:0,fontSize:13,color:"#718096"}}>A4 · JPG / Excel / PDF</p></div>
-            <div className="download-buttons">
-              <button className="jpg" disabled={!scriptsReady.html2canvas} onClick={()=>requestDownload("jpg")}>{t("download_jpg")}</button>
-              <button className="excel" disabled={!scriptsReady.xlsx} onClick={()=>requestDownload("excel")}>{t("download_excel")}</button>
-              <button className="pdf" disabled={!scriptsReady.html2canvas||!scriptsReady.jspdf} onClick={()=>requestDownload("pdf")}>{t("download_pdf")}</button>
-            </div>
-          </div>
-
-          <div className="actions"><button onClick={()=>window.print()}>{t("action_print")}</button><button onClick={saveEstimate}>{saved?t("action_saved"):t("action_save")}</button></div>
+        <p className="field-note" style={{marginTop:10}}>Disclaimer: these are approximate rates, phase-wise splits and durations. Actual cost/time varies by city and contractor — confirm local rates before finalizing.</p>
+        <div className="actions" style={{marginTop:14}}>
+          <button onClick={()=>window.print()}>{t("action_print")}</button>
+          <button onClick={shareEstimate}>{shared?"Copied!":"Share Final Estimate"}</button>
         </div>
       </div>
+
+      <div className="card summary"><h2><Icon path={ICONS.summary}/> {t("summary_heading")}</h2><div className="summary-main">{money(grandTotal,project.currency)}</div><p>{t("summary_total")}</p>
+        {(project.mode==="area"||project.mode==="both")&&<div className="mini">{t("pd_mode_area")}: {money(areaComponent,project.currency)}</div>}
+        {(project.mode==="boq"||project.mode==="both")&&<div className="mini">{t("summary_materials")}: {money(materialComponent,project.currency)}</div>}
+        {locationMultiplier!==1 && <div className="mini">Location adjustment: {money(locationAdjustment,project.currency)}</div>}
+      </div>
+
+      <div className="card"><div className="section-head"><div><h2><Icon path={ICONS.materials}/> {t("boq_heading")}</h2><p>{t("material_name_ph")}</p></div><div style={{display:"flex",gap:8}}><button type="button" onClick={updateAllRatesForState}>Update rates for {project.state==="Not selected"?"India (avg)":project.state}</button><button onClick={addMaterial}>{t("boq_add")}</button></div></div>
+        <p className="field-note" style={{marginTop:4,marginBottom:12}}>Picking a known material auto-fills a {project.state==="Not selected"?"national-average":project.state+"-adjusted"} rate — you can always type your own local price over it.</p>
+        <div className="toggle-row" style={{marginBottom:12}}><input type="checkbox" checked={project.commercialMode} onChange={e=>updateProject("commercialMode",e.target.checked)}/> <b>Commercial mode</b> <span className="field-note" style={{marginLeft:6}}>adds Supplier, GST%, Discount% &amp; Remarks columns</span></div>
+        <div className="table-wrap"><table><thead><tr><th>{t("th_material")}</th><th>{t("th_brand")}</th><th>{t("th_spec")}</th><th>{t("th_unit")}</th><th>{t("th_qty")}</th><th>{t("th_rate")}</th>{project.commercialMode&&<><th>Supplier</th><th>GST%</th><th>Disc%</th></>}<th>{t("th_amount")}</th>{project.commercialMode&&<th>Remarks</th>}<th></th></tr></thead><tbody>
+        {materials.map((m,i)=>{
+          const amount=rowAmount(m);
+          const brandKey = Object.keys(MATERIAL_BRAND_MAP).find(k=>(m.name||"").toLowerCase().includes(k.toLowerCase()));
+          const brandOptions = brandKey ? MATERIAL_BRAND_MAP[brandKey] : GENERIC_BRANDS;
+          const sizeOptions = getSizeOptions(m.name);
+          const unitOptions = getUnitOptions(m.name);
+          const isCustomUnit = !!customUnitRows[i] || (m.unit && !unitOptions.includes(m.unit));
+          const unitSelectValue = isCustomUnit ? "__custom__" : m.unit;
+          const hasSizeOptions = sizeOptions.length > 0;
+          const isCustomSize = !!customSizeRows[i] || (hasSizeOptions && m.size && !sizeOptions.includes(m.size));
+          const sizeSelectValue = isCustomSize ? "__custom__" : m.size;
+          return <tr key={i}>
+          <td className="mat-row-name"><input list="material-suggestions" value={m.name} placeholder={t("material_name_ph")} onChange={e=>setMaterialName(i,e.target.value)}/></td>
+          <td><input list={`brand-list-${i}`} value={m.brand} placeholder={t("brand_ph")} onChange={e=>updateMaterial(i,"brand",e.target.value)}/>
+            <datalist id={`brand-list-${i}`}>{brandOptions.map(b=><option key={b} value={b}/>)}</datalist>
+          </td>
+          <td>
+            {hasSizeOptions ? (
+              <>
+                <select value={sizeSelectValue} onChange={e=>setSizeFromSelect(i,e.target.value)}>
+                  <option value="">{t("opt_none_custom")}</option>
+                  {sizeOptions.map(s=><option key={s} value={s}>{s}</option>)}
+                  <option value="__custom__">Other (type manually)</option>
+                </select>
+                {isCustomSize && (
+                  <input type="text" value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)} style={{marginTop:6,width:"100%"}}/>
+                )}
+              </>
+            ) : (
+              <input value={m.size} placeholder={t("size_ph")} onChange={e=>updateMaterial(i,"size",e.target.value)}/>
+            )}
+          </td>
+          <td>
+            <select value={unitSelectValue} onChange={e=>setUnitFromSelect(i,e.target.value)}>
+              <option value="">{t("opt_none_custom")}</option>
+              {unitOptions.map(u=><option key={u} value={u}>{u}</option>)}
+              <option value="__custom__">Other (type manually)</option>
+            </select>
+            {isCustomUnit && (
+              <input
+                type="text"
+                value={m.unit}
+                placeholder="Type unit"
+                onChange={e=>updateMaterial(i,"unit",e.target.value)}
+                style={{marginTop:6,width:"100%"}}
+              />
+            )}
+          </td>
+          <td><input type="number" min="0" step="any" value={m.qty} onChange={e=>updateMaterial(i,"qty",e.target.value)}/></td>
+          <td><input type="number" min="0" step="any" value={m.rate} onChange={e=>updateMaterial(i,"rate",e.target.value)}/></td>
+          {project.commercialMode&&<>
+            <td><input value={m.supplier||""} placeholder="Supplier" onChange={e=>updateMaterial(i,"supplier",e.target.value)}/></td>
+            <td><input type="number" min="0" step="any" value={m.gst||0} onChange={e=>updateMaterial(i,"gst",e.target.value)} style={{width:70}}/></td>
+            <td><input type="number" min="0" step="any" value={m.discount||0} onChange={e=>updateMaterial(i,"discount",e.target.value)} style={{width:70}}/></td>
+          </>}
+          <td className="amount">{money(amount,project.currency)}</td>
+          {project.commercialMode&&<td><input value={m.remarks||""} placeholder="Remarks" onChange={e=>updateMaterial(i,"remarks",e.target.value)}/></td>}
+          <td><button className="delete" aria-label="Remove" onClick={()=>removeMaterial(i)}>×</button></td>
+        </tr>})}</tbody><tfoot><tr><td colSpan={project.commercialMode?9:6} className="boq-total-label">{t("boq_subtotal")}</td><td className="amount">{money(materialSubtotal,project.currency)}</td>{project.commercialMode&&<td></td>}<td></td></tr></tfoot></table></div>
+      </div>
+
+      <div className="grid">
+        <div className="card">
+          <div className="toggle-row top-toggle"><input type="checkbox" checked={project.useAdditionalCosts} onChange={e=>updateProject("useAdditionalCosts",e.target.checked)}/> <b>{t("toggle_additional_costs")}</b></div>
+          {project.useAdditionalCosts && <div className="form-grid" style={{marginTop:14}}>
+            {(project.mode==="boq"||project.mode==="both")&&<label>{t("extra_wastage")}<input type="number" min="0" step="any" value={project.wastage} onChange={e=>updateProject("wastage",e.target.value)}/></label>}
+            <label>{t("extra_other")}<input type="number" min="0" step="any" value={project.other} onChange={e=>updateProject("other",e.target.value)}/></label>
+            <label>{t("extra_tax")}<input type="number" min="0" step="any" value={project.tax} onChange={e=>updateProject("tax",e.target.value)}/></label>
+            <label>{t("extra_contingency")}<input type="number" min="0" step="any" value={project.contingency} onChange={e=>updateProject("contingency",e.target.value)}/></label>
+
+            <div className="full toggle-row"><input type="checkbox" checked={project.includeTransport} onChange={e=>updateProject("includeTransport",e.target.checked)}/> <Icon path={ICONS.transport} size={16}/> {t("toggle_transport")}</div>
+            {project.includeTransport&&<label className="full">{t("extra_transport")}<input type="number" min="0" step="any" value={project.transport} onChange={e=>updateProject("transport",e.target.value)}/></label>}
+
+            <div className="full toggle-row"><input type="checkbox" checked={project.includeLabour} onChange={e=>updateProject("includeLabour",e.target.checked)}/> <Icon path={ICONS.labour} size={16}/> {t("toggle_labour")}</div>
+            {project.includeLabour && <div className="full labour-block">
+              <label>{t("labour_type")}<select value={project.labourType} onChange={e=>updateProject("labourType",e.target.value)}><option value="contract">{t("labour_contract")}</option><option value="day">{t("labour_dayside")}</option><option value="tradewise">Trade-wise (Mason, Helper, Carpenter, Electrical, Plumbing)</option></select></label>
+              {project.labourType==="contract" ? <div className="sub-grid">
+                <label>{t("contract_amount")}<input type="number" min="0" value={project.contractAmount} onChange={e=>updateProject("contractAmount",e.target.value)}/></label>
+                <label>{t("contract_days")}<input type="number" min="0" value={project.contractDays} onChange={e=>updateProject("contractDays",e.target.value)}/></label>
+              </div> : project.labourType==="tradewise" ? <div className="sub-grid">
+                <label>Mason Labour<input type="number" min="0" value={project.masonCost} onChange={e=>updateProject("masonCost",e.target.value)}/></label>
+                <label>Helper Labour<input type="number" min="0" value={project.helperLabourCost} onChange={e=>updateProject("helperLabourCost",e.target.value)}/></label>
+                <label>Carpenter Charges<input type="number" min="0" value={project.carpenterCost} onChange={e=>updateProject("carpenterCost",e.target.value)}/></label>
+                <label>Electrical Charges<input type="number" min="0" value={project.electricalCost} onChange={e=>updateProject("electricalCost",e.target.value)}/></label>
+                <label>Plumbing Charges<input type="number" min="0" value={project.plumbingCost} onChange={e=>updateProject("plumbingCost",e.target.value)}/></label>
+              </div> : <div className="sub-grid">
+                <label>{t("lead_count")}<input type="number" min="0" value={project.leadCount} onChange={e=>updateProject("leadCount",e.target.value)}/></label>
+                <label>{t("helper_count")}<input type="number" min="0" value={project.helperCount} onChange={e=>updateProject("helperCount",e.target.value)}/></label>
+                <label>{t("lead_rate")}<input type="number" min="0" value={project.leadRate} onChange={e=>updateProject("leadRate",e.target.value)}/></label>
+                <label>{t("helper_rate")}<input type="number" min="0" value={project.helperRate} onChange={e=>updateProject("helperRate",e.target.value)}/></label>
+                <label>{t("work_days")}<input type="number" min="0" value={project.workDays} onChange={e=>updateProject("workDays",e.target.value)}/></label>
+              </div>}
+            </div>}
+          </div>}
+        </div>
+
+        <div className="card breakdown"><h2><Icon path={ICONS.report}/> {t("bd_heading")}</h2>
+          {pieSlices.length>0 && <div className="pie-wrap">
+            <div className="pie-chart" style={{background:pieGradient}}/>
+            <div className="pie-legend">
+              {pieSlices.map(s=><div key={s.label} className="pie-legend-item"><span className="pie-dot" style={{background:s.color}}/>{s.label} — {s.pct.toFixed(0)}%</div>)}
+            </div>
+          </div>}
+          {(project.mode==="area"||project.mode==="both")&&<div className="row"><span>{t("pd_mode_area")}</span><b>{money(areaComponent,project.currency)}</b></div>}
+          {(project.mode==="boq"||project.mode==="both")&&<div className="row"><span>{t("boq_subtotal")}</span><b>{money(materialComponent,project.currency)}</b></div>}
+          {wastageCost>0&&<div className="row"><span>{t("bd_wastage")}</span><b>{money(wastageCost,project.currency)}</b></div>}
+          {labourCost>0&&<div className="row"><span>{t("bd_labour")}</span><b>{money(labourCost,project.currency)}</b></div>}
+          {transportCost>0&&<div className="row"><span>{t("bd_transport")}</span><b>{money(transportCost,project.currency)}</b></div>}
+          {useExtra&&<div className="row"><span>{t("bd_other")}</span><b>{money(otherCost,project.currency)}</b></div>}
+          {useExtra&&<div className="row"><span>{t("bd_contingency")}</span><b>{money(contingency,project.currency)}</b></div>}
+          {useExtra&&<div className="row"><span>{t("bd_tax")}</span><b>{money(tax,project.currency)}</b></div>}
+          {locationMultiplier!==1&&<div className="row"><span>Location adjustment ({project.state})</span><b>{money(locationAdjustment,project.currency)}</b></div>}
+          <div className="row grand"><span>{t("bd_grand")}</span><b>{money(grandTotal,project.currency)}</b></div>
+        </div>
+      </div>
+
+      <div className="card">
+        <div className="section-head"><div><h2><Icon path={ICONS.save}/> My Projects</h2><p>Saved estimates on this device — tap Load to bring one back</p></div></div>
+        {savedProjects.length===0 ? <p className="field-note">No saved projects yet. Use "Save" below to keep this estimate.</p> : (
+          <div className="table-wrap"><table><thead><tr><th>Name</th><th>Saved</th><th>Total</th><th></th></tr></thead>
+          <tbody>{savedProjects.map(p=>(
+            <tr key={p.id}>
+              <td>{p.name}</td>
+              <td>{new Date(p.savedAt).toLocaleDateString()}</td>
+              <td className="amount">{money(p.grandTotal,p.project.currency)}</td>
+              <td style={{display:"flex",gap:8}}>
+                <button type="button" onClick={()=>loadProject(p)}>Load</button>
+                <button type="button" className="delete" onClick={()=>deleteProject(p.id)}>×</button>
+              </td>
+            </tr>
+          ))}</tbody></table></div>
+        )}
+      </div>
+
+      <div className="card download-card">
+        <div><h2 style={{margin:"0 0 4px"}}><Icon path={ICONS.report} size={16}/> {t("download_heading")}</h2><p style={{margin:0,fontSize:13,color:"#718096"}}>A4 · JPG / Excel / PDF</p></div>
+        <div className="download-buttons">
+          <button className="jpg" disabled={!scriptsReady.html2canvas} onClick={()=>requestDownload("jpg")}>{t("download_jpg")}</button>
+          <button className="excel" disabled={!scriptsReady.xlsx} onClick={()=>requestDownload("excel")}>{t("download_excel")}</button>
+          <button className="pdf" disabled={!scriptsReady.html2canvas||!scriptsReady.jspdf} onClick={()=>requestDownload("pdf")}>{t("download_pdf")}</button>
+        </div>
+      </div>
+
+      <div className="actions"><button onClick={()=>window.print()}>{t("action_print")}</button><button onClick={saveEstimate}>{saved?t("action_saved"):t("action_save")}</button></div>
     </section>
 
     {/* Off-screen A4 sheet captured for JPG/PDF export */}
@@ -708,7 +960,7 @@ export default function Calculator() {
                data-ad-format="auto"
                data-full-width-responsive="true"></ins>
           <button className="ad-modal-continue" disabled={adSeconds > 0} onClick={confirmDownload}>
-            {adSeconds > 0? `Please wait… (${adSeconds})` : "Continue to Download"}
+            {adSeconds > 0 ? `Please wait… (${adSeconds})` : "Continue to Download"}
           </button>
         </div>
       </div>
